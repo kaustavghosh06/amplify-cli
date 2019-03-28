@@ -32,6 +32,7 @@ const { listCategories } = require('./amplify-helpers/list-categories');
 const pathManager = require('./amplify-helpers/path-manager');
 const { makeId } = require('./amplify-helpers/make-id');
 const { openEditor } = require('./amplify-helpers/open-editor');
+const { openPlayground } = require('./amplify-helpers/open-playground');
 const { getWhen } = require('./amplify-helpers/get-when-function');
 const { serviceSelectionPrompt } = require('./amplify-helpers/service-select-prompt');
 const { updateProjectConfig } = require('./amplify-helpers/update-project-config');
@@ -89,6 +90,7 @@ module.exports = (context) => {
     listCategories,
     makeId,
     openEditor,
+    openPlayground,
     onCategoryOutputsChange,
     pathManager,
     pressEnterToContinue,
