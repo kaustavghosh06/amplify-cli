@@ -201,7 +201,7 @@ async function addResource(context, category, service, options, parameters) {
 async function updateResource(context, category, service, parameters, resourceToUpdate, skipEdit) {
   let answers;
   serviceMetadata = context.amplify.readJsonFile(`${__dirname}/../supported-services.json`)[service];
-  const { cfnFilename, serviceWalkthroughFilename } = serviceMetadata;
+  const { serviceWalkthroughFilename } = serviceMetadata;
 
   const serviceWalkthroughSrc = `${__dirname}/service-walkthroughs/${serviceWalkthroughFilename}`;
   const { updateWalkthrough } = require(serviceWalkthroughSrc);
@@ -235,13 +235,23 @@ async function updateResource(context, category, service, parameters, resourceTo
     );
   }
 
-  const previousParameters = context.amplify.readJsonFile(`${context.amplify.pathManager.getBackendDirPath()}/function/${resourceToUpdate}/parameters.json`);
-
-  if (previousParameters.trigger === true) {
-    answers = Object.assign(answers, previousParameters);
+  if (answers.parameters) {
+    createParametersFile(context, answers.parameters, answers.resourceName);
   }
 
-  copyCfnTemplate(context, category, answers, cfnFilename, parameters);
+  /* const parametersFilePath =
+  `${context.amplify.pathManager.getBackendDirPath()}/function/${resourceToUpdate}/parameters.json`;
+  let previousParameters;
+
+  if(fs.existsSync(parametersFilePath)) {
+    previousParameters = context.amplify.readJsonFile(parametersFilePath);
+
+    if (previousParameters.trigger === true) {
+      answers = Object.assign(answers, previousParameters);
+    }
+  }
+
+  copyCfnTemplate(context, category, answers, cfnFilename, parameters); */
 
   if (!skipEdit) {
     await openEditor(context, category, answers);
