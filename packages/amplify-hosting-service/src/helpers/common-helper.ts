@@ -1,4 +1,4 @@
-import { AmplifyContext } from '../types';
+import { AmplifyContext, AmplifyMeta, LocalEnvInfo } from '../types';
 
 export class CommonHelper {
     private context: AmplifyContext;
@@ -17,7 +17,19 @@ export class CommonHelper {
     }
 
     getRegion(): string {
-        return this.context.exeInfo.amplifyMeta.providers.awscloudformation.Region;
+        return this.getProjectMeta().providers.awscloudformation.Region;
 
+    }
+
+    getProjectMeta(): AmplifyMeta {
+        return this.context.amplify.getProjectMeta();
+    }
+
+    getProjectConfig() {
+        return this.context.amplify.getProjectConfig();
+    }
+
+    getLocalEnvInfo(): LocalEnvInfo {
+        return this.context.amplify.getEnvInfo();
     }
 }

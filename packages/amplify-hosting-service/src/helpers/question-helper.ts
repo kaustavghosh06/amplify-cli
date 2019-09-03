@@ -1,5 +1,5 @@
 import * as inquirer from 'inquirer';
-import { AmplifyContext, CFNParameters, BasicAuthConfig, CFNTemplate, DeployType, CustomRule } from '../types';
+import { AmplifyContext, CFNParameters, BasicAuthConfig, CFNTemplate, DeployType, CustomRule, BranchOperation } from '../types';
 import { TemplateHelper } from './index';
 import chalk from 'chalk';
 import open from 'open';
@@ -14,6 +14,7 @@ const SELECT_CONFIG_QUESTION = "Configure settings for all frontends:";
 const SELECT_CONFIG_COMPLETION = "Apply configuration";
 
 const SELECT_REMOVE_FRONTEND_QUESTION = "Select frontends to remove"
+
 
 const BASIC_AUTH_USERNAME_QUESTION = "Enter username";
 const BASIC_AUTH_PASSWORD_QUESTION = "Enter password";
@@ -35,6 +36,7 @@ const SELECT_CONFIG_AUTH = "Access control";
 const SELECT_CONFIG_RULES = "Redirects and rewrites";
 const SELECT_DOMAIN_MANAGEMENT = "Domain management";
 const SELECT_REMOVE_FRONTEND = "Remove frontend environment";
+const SELECT_ADD_FRONTEND = "Add new frontend environment";
 
 const PICKUP_FRONTEND_QUESTION = "Pick a frontend environment to deploy to:";
 const ADD_NEW_FRONTEND = 'create new';
@@ -84,14 +86,17 @@ export class QuestionHelper {
         let selectConfigRules = SELECT_CONFIG_RULES;
         let selectDomainManagement = SELECT_DOMAIN_MANAGEMENT;
         let selectRemoveFrontend = SELECT_REMOVE_FRONTEND;
+        let selectConfigCompletion = SELECT_CONFIG_COMPLETION;
+        let selectAddFrontend = SELECT_ADD_FRONTEND;
 
         let doesBasicAuthEdit = false;
         let doesRulesEdit = false;
-        let doesDomainEdit = false;
         let doesRemoveFrontEndEdit = false;
 
         let parameters: CFNParameters = this.templateHelper.getParametersFromTemplate(template);
-        let branches = this.templateHelper.getBranchesFromTemplate(template);
+        parameters.BranchesAfterEdit = this.templateHelper.getBranchesFromTemplate(template);
+        parameters.Branches = this.templateHelper.getBranchesFromTemplate(template);
+
         const selectConfigKey = 'selectConfig';
         let notComplete = true;
         while (notComplete) {
@@ -99,9 +104,10 @@ export class QuestionHelper {
                 selectConfigAuth,
                 selectConfigRules,
                 selectDomainManagement,
-                SELECT_CONFIG_COMPLETION
+                selectAddFrontend,
+                selectConfigCompletion
             ]
-            if (branches.length > 0) {
+            if (parameters.BranchesAfterEdit.length > 0) {
                 if (!questionList.includes(selectRemoveFrontend)) {
                     questionList.splice(questionList.length - 1, 0, selectRemoveFrontend);
                 }
@@ -123,7 +129,8 @@ export class QuestionHelper {
             switch (selections[selectConfigKey]) {
                 case selectConfigAuth: {
                     const result: QuestionType = await this.askBaiscAuthQuestion({
-                        configType: parameters.BasicAuthConfig, doesEdit: doesBasicAuthEdit});
+                        configType: parameters.BasicAuthConfig, doesEdit: doesBasicAuthEdit
+                    });
                     parameters.BasicAuthConfig = result.configType as BasicAuthConfig;
                     doesBasicAuthEdit = result.doesEdit;
                     selectConfigAuth = editMessageWithSymbol(selectConfigAuth, doesBasicAuthEdit);
@@ -140,12 +147,19 @@ export class QuestionHelper {
                     break;
                 }
                 case selectRemoveFrontend: {
-                    parameters.BranchesToDelete = await this.askWhichBranchesToDeleteQuestion(branches);
-                    if (parameters.BranchesToDelete.length > 0) {
+                    const branchesToDelete = await this.askWhichBranchesToDeleteQuestion(parameters.BranchesAfterEdit);
+
+                    if (branchesToDelete.length > 0) {
                         doesRemoveFrontEndEdit = true;
                     }
-                    branches = branches.filter(branch => !parameters.BranchesToDelete.includes(branch));
+                    parameters.BranchesAfterEdit = parameters.BranchesAfterEdit.filter(branch => !branchesToDelete.includes(branch));
                     selectRemoveFrontend = editMessageWithSymbol(selectRemoveFrontend, doesRemoveFrontEndEdit);
+                    break;
+                }
+                case selectAddFrontend: {
+                    const branchToCreate = await this.askNewBranchName(parameters.BranchesAfterEdit);
+                    parameters.BranchesAfterEdit.push(branchToCreate);
+                    selectAddFrontend = editMessageWithSymbol(selectAddFrontend, true);
                     break;
                 }
                 case selectDomainManagement: {
@@ -177,11 +191,13 @@ export class QuestionHelper {
                     type: "input",
                     name: userNameKey,
                     message: BASIC_AUTH_USERNAME_QUESTION,
+                    validate: validateLength,
                     default: basicAuthConfig ? basicAuthConfig.Username : undefined
                 },
                 {
                     type: "password",
                     name: passwordKey,
+                    validate: validateLength,
                     message: BASIC_AUTH_PASSWORD_QUESTION
                 },
                 {
@@ -225,7 +241,7 @@ export class QuestionHelper {
                 }
             ]);
             if (anwser[selectKey] === BASIC_AUTH_EDIT_QUESTION) {
-                return {... await this.askNewBasicAuthQuestion(question), ... { doesEdit: true }};
+                return { ... await this.askNewBasicAuthQuestion(question), ... { doesEdit: true } };
             } else {
                 return {
                     doesEdit: true
@@ -281,7 +297,7 @@ export class QuestionHelper {
                 question.doesEdit = true;
             }
         }
-        return {... question, ...{ configType: customRules }};
+        return { ...question, ...{ configType: customRules } };
     }
 
     private async askNewCustomRuleQuestion(customRule?: CustomRule): Promise<CustomRule> {
@@ -296,18 +312,21 @@ export class QuestionHelper {
                 type: 'input',
                 name: sourceKey,
                 message: EDIT_SOURCE_QUESTION,
+                validate: validateLength,
                 default: customRule ? customRule.Source : undefined
             },
             {
                 type: 'input',
                 name: targetKey,
                 message: EDIT_TARGET_QUESTION,
+                validate: validateLength,
                 default: customRule ? customRule.Target : undefined
             },
             {
                 type: 'input',
                 name: statusKey,
                 message: EDIT_STATUS_CODE,
+                validate: validateStatusCode,
                 default: customRule ? customRule.Status : 200
             },
             {
@@ -380,46 +399,34 @@ export class QuestionHelper {
         return customRules;
     }
 
-    private async askUpdateInputQuestion(defaultValue: string, updateType: string): Promise<string> {
-        const questionTemplate = `Input ${updateType}`;
-        const updateKey = 'updateKey';
-        const anwser = await inquirer.prompt([
-            {
-                type: "input",
-                name: updateKey,
-                message: questionTemplate,
-                default: defaultValue ? defaultValue : ''
-            }
-        ]);
-        return anwser.updateKey;
-    }
-
     async askWhichBranchToUpdateQuestion(template: CFNTemplate): Promise<string> {
         const questionKey = 'question';
         let branchNames: string[] = this.templateHelper.getBranchesFromTemplate(template);
         if (branchNames.length > 0) {
+            if (branchNames.length === 1) {
+                return branchNames[0];
+            }
             const anwser = await inquirer.prompt([
                 {
                     type: "list",
                     name: questionKey,
                     message: PICKUP_FRONTEND_QUESTION,
-                    choices: [...branchNames, ADD_NEW_FRONTEND]
+                    choices: [...branchNames]
                 }
             ]);
-            if (anwser[questionKey] !== ADD_NEW_FRONTEND) {
-                return anwser[questionKey];
-            }
+            return anwser[questionKey];
         }
         return this.askNewBranchName();
     }
 
-    private async askNewBranchName(): Promise<string> {
+    private async askNewBranchName(branches?: string[]): Promise<string> {
         const questionKey = 'question';
         const anwser = await inquirer.prompt([
             {
                 type: "input",
                 name: questionKey,
-                message: ADD_NEW_FRONTEND_QUESTION
+                message: ADD_NEW_FRONTEND_QUESTION,
+                validate: branchValidator(branches)
             }
         ]);
         return anwser[questionKey];
@@ -511,4 +518,52 @@ function editMessageWithSymbol(input: string, doesEdit: boolean): string {
         }
     }
     return input;
+}
+
+function validateLength(input: string | undefined): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        if (input) {
+            if (input.length <= 0) {
+                console.log(chalk.red('Input can not be blank'));
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        } else {
+            console.log(chalk.red('Input can not be blank'));
+            resolve(false);
+        }
+    });
+}
+
+function branchValidator(branches?: string[]): (input: string) => Promise<boolean> {
+    const validator = (input: string) => new Promise<boolean>((resolve, reject) => {
+        if (input) {
+            if (input.length <= 0) {
+                console.log(chalk.red('Input can not be blank'));
+                resolve(false);
+            } else {
+                if (branches && branches.includes(input)) {
+                    console.log(chalk.red('The frontend environment already exists. Please input a new name'));
+                    resolve(false);
+                }
+                resolve(true);
+            }
+        } else {
+            console.log(chalk.red('Input can not be blank'));
+            resolve(false);
+        }
+    });
+    return validator;
+}
+
+function validateStatusCode(input: any): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        if (typeof (input) === 'number') {
+            resolve(true);
+        } else {
+            console.log(chalk.red('Status code can only be number'));
+            resolve(false);
+        }
+    })
 }

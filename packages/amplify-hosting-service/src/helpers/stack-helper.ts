@@ -44,7 +44,7 @@ export class StackHelper {
                 await this.cfnClient.updateStack(params).promise().catch(err => {
                     if (err.code === 'ValidationError' && err.message.includes('No updates are to be performed')) {
                         doUpdate = false;
-                        spinner.succeed(UPDATING_STACK_MESSAGE);
+                        spinner.succeed(UPDATING_STACK_SUCCESS_MESSAGE);
                     } else {
                         throw err;
                     }
@@ -54,7 +54,7 @@ export class StackHelper {
                 }
                 const waitForStatus: WAIT_FOR_TYPE = "stackUpdateComplete";
                 await this.cfnClient.waitFor(waitForStatus, { StackName: stackName }).promise();
-                spinner.succeed(UPDATING_STACK_MESSAGE);
+                spinner.succeed(UPDATING_STACK_SUCCESS_MESSAGE);
                 return stackName;
             }
             default:

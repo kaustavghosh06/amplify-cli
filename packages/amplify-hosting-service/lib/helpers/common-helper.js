@@ -13,7 +13,16 @@ var CommonHelper = /** @class */ (function () {
         return this.getDefaultProjectName() + "-aws-amplify-console-" + (new Date()).getTime();
     };
     CommonHelper.prototype.getRegion = function () {
-        return this.context.exeInfo.amplifyMeta.providers.awscloudformation.Region;
+        return this.getProjectMeta().providers.awscloudformation.Region;
+    };
+    CommonHelper.prototype.getProjectMeta = function () {
+        return this.context.amplify.getProjectMeta();
+    };
+    CommonHelper.prototype.getProjectConfig = function () {
+        return this.context.amplify.getProjectConfig();
+    };
+    CommonHelper.prototype.getLocalEnvInfo = function () {
+        return this.context.amplify.getEnvInfo();
     };
     return CommonHelper;
 }());

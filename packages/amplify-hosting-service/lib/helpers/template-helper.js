@@ -114,15 +114,20 @@ var TemplateHelper = /** @class */ (function () {
         return __assign({}, template.Resources.AmplifyApp.Properties);
     };
     TemplateHelper.prototype.updateTemplate = function (template, parameters) {
-        var _this = this;
-        if (parameters.BranchesToDelete) {
-            parameters.BranchesToDelete.forEach(function (branch) {
-                _this.deleteBranchFromTemplate(template, branch);
-            });
+        if (parameters.BranchesAfterEdit) {
+            var branchesToChange = caculateBranchesToChange(parameters.Branches, parameters.BranchesAfterEdit);
+            for (var _i = 0, _a = branchesToChange.branchesToDelete; _i < _a.length; _i++) {
+                var branchToDelete = _a[_i];
+                this.deleteBranchFromTemplate(template, branchToDelete);
+            }
+            for (var _b = 0, _c = branchesToChange.branchesToCreate; _b < _c.length; _b++) {
+                var branchToCreate = _c[_b];
+                this.addBranchToTemplate(template, branchToCreate);
+            }
         }
         Object.keys(parameters).forEach(function (key) {
             if (parameters[key]) {
-                if (key !== 'BranchesToDelete') {
+                if (key !== 'BranchesAfterEdit' && key !== 'Branches') {
                     template.Resources.AmplifyApp.Properties[key] = parameters[key];
                 }
             }
@@ -158,4 +163,24 @@ var TemplateHelper = /** @class */ (function () {
     return TemplateHelper;
 }());
 exports.TemplateHelper = TemplateHelper;
+function caculateBranchesToChange(currentBranches, branchesAfterEdit) {
+    var branchesToChange = {
+        branchesToCreate: [],
+        branchesToDelete: []
+    };
+    for (var _i = 0, currentBranches_1 = currentBranches; _i < currentBranches_1.length; _i++) {
+        var currentBranch = currentBranches_1[_i];
+        if (!branchesAfterEdit.includes(currentBranch)) {
+            branchesToChange.branchesToDelete.push(currentBranch);
+        }
+    }
+    ;
+    for (var _a = 0, branchesAfterEdit_1 = branchesAfterEdit; _a < branchesAfterEdit_1.length; _a++) {
+        var branchAfterEdit = branchesAfterEdit_1[_a];
+        if (!currentBranches.includes(branchAfterEdit)) {
+            branchesToChange.branchesToCreate.push(branchAfterEdit);
+        }
+    }
+    return branchesToChange;
+}
 //# sourceMappingURL=template-helper.js.map

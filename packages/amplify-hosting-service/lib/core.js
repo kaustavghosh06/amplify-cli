@@ -49,13 +49,19 @@ var AmplifyConsole = /** @class */ (function () {
         this.cicdProcessor = new index_1.CICDProcessor(context);
         this.questionHelper = new helpers_1.QuestionHelper(context);
         this.configHelper = new config_helper_1.ConfigHelper(context);
+        this.commonHelper = new helpers_1.CommonHelper(context);
     }
     AmplifyConsole.prototype.add = function () {
         return __awaiter(this, void 0, void 0, function () {
             var deployType, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, this.questionHelper.askDeployType()];
+                    case 0:
+                        if (this.configHelper.isHostingEanbled()) {
+                            console.log(chalk_1.default.red('You have already enabled AWS Amplify Console hosting!'));
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, this.questionHelper.askDeployType()];
                     case 1:
                         deployType = _b.sent();
                         _a = deployType;
@@ -90,7 +96,7 @@ var AmplifyConsole = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         if (!this.configHelper.isHostingEanbled()) {
-                            chalk_1.default.red('Please enable amplify console hosting first');
+                            console.log(chalk_1.default.red('Please enable amplify console hosting first'));
                             return [2 /*return*/];
                         }
                         deployType = this.configHelper.getDeployType();
@@ -125,7 +131,7 @@ var AmplifyConsole = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         if (!this.configHelper.isHostingEanbled()) {
-                            chalk_1.default.red('Please enable amplify console hosting first');
+                            console.log(chalk_1.default.red('Please enable amplify console hosting first'));
                             return [2 /*return*/];
                         }
                         deployType = this.configHelper.getDeployType();
@@ -160,7 +166,7 @@ var AmplifyConsole = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         if (!this.configHelper.isHostingEanbled()) {
-                            console.log('Please enable amplify console hosting first');
+                            console.log(chalk_1.default.red('Please enable amplify console hosting first'));
                             return [2 /*return*/];
                         }
                         deployType = this.configHelper.getDeployType();
@@ -194,7 +200,7 @@ var AmplifyConsole = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        envName = this.context.exeInfo.localEnvInfo.envName;
+                        envName = this.commonHelper.getLocalEnvInfo().envName;
                         stackName = this.configHelper.loadStackNameByEnvFromTeamConfig(envName);
                         appId = this.configHelper.loadAppIdByEnvFromTeamConfig(envName);
                         if (!stackName) return [3 /*break*/, 2];
@@ -209,8 +215,7 @@ var AmplifyConsole = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 5];
                     case 4:
-                        console.log('Can not detect your project settings');
-                        chalk_1.default.red('Can not detect your project settings');
+                        console.log(chalk_1.default.red('Can not detect your project settings'));
                         _a.label = 5;
                     case 5: return [2 /*return*/];
                 }
@@ -224,7 +229,7 @@ var AmplifyConsole = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         if (!this.configHelper.isHostingEanbled()) {
-                            console.log('Please enable amplify console hosting first');
+                            console.log(chalk_1.default.red('Please enable amplify console hosting first'));
                             return [2 /*return*/];
                         }
                         deployType = this.configHelper.getDeployType();

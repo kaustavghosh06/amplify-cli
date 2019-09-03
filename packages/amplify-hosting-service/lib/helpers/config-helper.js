@@ -204,7 +204,7 @@ var ConfigHelper = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var envName;
             return __generator(this, function (_a) {
-                envName = this.context.exeInfo.localEnvInfo.envName;
+                envName = this.commonHelper.getLocalEnvInfo().envName;
                 if (this.loadStackNameByEnvFromTeamConfig(envName)) {
                     return [2 /*return*/, this.loadStackNameByEnvFromTeamConfig(envName)];
                 }
@@ -219,7 +219,7 @@ var ConfigHelper = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var envName;
             return __generator(this, function (_a) {
-                envName = this.context.exeInfo.localEnvInfo.envName;
+                envName = this.commonHelper.getLocalEnvInfo().envName;
                 if (this.loadAppIdByEnvFromTeamConfig(envName)) {
                     return [2 /*return*/, this.loadAppIdByEnvFromTeamConfig(envName)];
                 }

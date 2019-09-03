@@ -8,14 +8,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var path = __importStar(require("path"));
+var index_1 = require("./index");
 var Constants = __importStar(require("../constants"));
 var fs = __importStar(require("fs-extra"));
 var PathHelper = /** @class */ (function () {
     function PathHelper(context) {
         this.context = context;
+        this.commonHelper = new index_1.CommonHelper(context);
     }
     PathHelper.prototype.getProjectPath = function () {
-        return this.context.exeInfo.localEnvInfo.projectPath;
+        return this.commonHelper.getLocalEnvInfo().projectPath;
     };
     PathHelper.prototype.getAmplifyPath = function () {
         return path.join(this.getProjectPath(), Constants.AMPLIFY_FOLDER_NAME);

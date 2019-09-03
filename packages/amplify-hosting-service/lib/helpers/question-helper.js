@@ -87,6 +87,7 @@ var SELECT_CONFIG_AUTH = "Access control";
 var SELECT_CONFIG_RULES = "Redirects and rewrites";
 var SELECT_DOMAIN_MANAGEMENT = "Domain management";
 var SELECT_REMOVE_FRONTEND = "Remove frontend environment";
+var SELECT_ADD_FRONTEND = "Add new frontend environment";
 var PICKUP_FRONTEND_QUESTION = "Pick a frontend environment to deploy to:";
 var ADD_NEW_FRONTEND = 'create new';
 var ADD_NEW_FRONTEND_QUESTION = "Enter a frontend environment name (e.g. dev or prod):";
@@ -125,104 +126,125 @@ var QuestionHelper = /** @class */ (function () {
     };
     QuestionHelper.prototype.askAppConfigQuestion = function (template, appId) {
         return __awaiter(this, void 0, void 0, function () {
-            var selectConfigAuth, selectConfigRules, selectDomainManagement, selectRemoveFrontend, doesBasicAuthEdit, doesRulesEdit, doesDomainEdit, doesRemoveFrontEndEdit, parameters, branches, selectConfigKey, notComplete, questionList, selections, _a, result, result, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var selectConfigAuth, selectConfigRules, selectDomainManagement, selectRemoveFrontend, selectConfigCompletion, selectAddFrontend, doesBasicAuthEdit, doesRulesEdit, doesRemoveFrontEndEdit, parameters, selectConfigKey, notComplete, _loop_1, this_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         selectConfigAuth = SELECT_CONFIG_AUTH;
                         selectConfigRules = SELECT_CONFIG_RULES;
                         selectDomainManagement = SELECT_DOMAIN_MANAGEMENT;
                         selectRemoveFrontend = SELECT_REMOVE_FRONTEND;
+                        selectConfigCompletion = SELECT_CONFIG_COMPLETION;
+                        selectAddFrontend = SELECT_ADD_FRONTEND;
                         doesBasicAuthEdit = false;
                         doesRulesEdit = false;
-                        doesDomainEdit = false;
                         doesRemoveFrontEndEdit = false;
                         parameters = this.templateHelper.getParametersFromTemplate(template);
-                        branches = this.templateHelper.getBranchesFromTemplate(template);
+                        parameters.BranchesAfterEdit = this.templateHelper.getBranchesFromTemplate(template);
+                        parameters.Branches = this.templateHelper.getBranchesFromTemplate(template);
                         selectConfigKey = 'selectConfig';
                         notComplete = true;
-                        _c.label = 1;
-                    case 1:
-                        if (!notComplete) return [3 /*break*/, 14];
-                        questionList = [
-                            selectConfigAuth,
-                            selectConfigRules,
-                            selectDomainManagement,
-                            SELECT_CONFIG_COMPLETION
-                        ];
-                        if (branches.length > 0) {
-                            if (!questionList.includes(selectRemoveFrontend)) {
-                                questionList.splice(questionList.length - 1, 0, selectRemoveFrontend);
-                            }
-                        }
-                        else {
-                            if (questionList.includes(selectRemoveFrontend)) {
-                                questionList.splice(questionList.indexOf(selectRemoveFrontend));
-                            }
-                        }
-                        return [4 /*yield*/, inquirer.prompt([
-                                {
-                                    type: "list",
-                                    name: selectConfigKey,
-                                    message: SELECT_CONFIG_QUESTION,
-                                    choices: questionList
+                        _loop_1 = function () {
+                            var questionList, selections, _a, result, result, branchesToDelete_1, branchToCreate;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
+                                    case 0:
+                                        questionList = [
+                                            selectConfigAuth,
+                                            selectConfigRules,
+                                            selectDomainManagement,
+                                            selectAddFrontend,
+                                            selectConfigCompletion
+                                        ];
+                                        if (parameters.BranchesAfterEdit.length > 0) {
+                                            if (!questionList.includes(selectRemoveFrontend)) {
+                                                questionList.splice(questionList.length - 1, 0, selectRemoveFrontend);
+                                            }
+                                        }
+                                        else {
+                                            if (questionList.includes(selectRemoveFrontend)) {
+                                                questionList.splice(questionList.indexOf(selectRemoveFrontend));
+                                            }
+                                        }
+                                        return [4 /*yield*/, inquirer.prompt([
+                                                {
+                                                    type: "list",
+                                                    name: selectConfigKey,
+                                                    message: SELECT_CONFIG_QUESTION,
+                                                    choices: questionList
+                                                }
+                                            ])];
+                                    case 1:
+                                        selections = _b.sent();
+                                        _a = selections[selectConfigKey];
+                                        switch (_a) {
+                                            case selectConfigAuth: return [3 /*break*/, 2];
+                                            case selectConfigRules: return [3 /*break*/, 4];
+                                            case selectRemoveFrontend: return [3 /*break*/, 6];
+                                            case selectAddFrontend: return [3 /*break*/, 8];
+                                            case selectDomainManagement: return [3 /*break*/, 10];
+                                            case SELECT_CONFIG_COMPLETION: return [3 /*break*/, 12];
+                                        }
+                                        return [3 /*break*/, 13];
+                                    case 2: return [4 /*yield*/, this_1.askBaiscAuthQuestion({
+                                            configType: parameters.BasicAuthConfig, doesEdit: doesBasicAuthEdit
+                                        })];
+                                    case 3:
+                                        result = _b.sent();
+                                        parameters.BasicAuthConfig = result.configType;
+                                        doesBasicAuthEdit = result.doesEdit;
+                                        selectConfigAuth = editMessageWithSymbol(selectConfigAuth, doesBasicAuthEdit);
+                                        return [3 /*break*/, 14];
+                                    case 4: return [4 /*yield*/, this_1.askRedirectRewriteRuleQuestion({
+                                            configType: parameters.CustomRules,
+                                            doesEdit: doesRulesEdit
+                                        })];
+                                    case 5:
+                                        result = _b.sent();
+                                        parameters.CustomRules = result.configType;
+                                        doesRulesEdit = result.doesEdit;
+                                        selectConfigRules = editMessageWithSymbol(selectConfigRules, doesRulesEdit);
+                                        return [3 /*break*/, 14];
+                                    case 6: return [4 /*yield*/, this_1.askWhichBranchesToDeleteQuestion(parameters.BranchesAfterEdit)];
+                                    case 7:
+                                        branchesToDelete_1 = _b.sent();
+                                        if (branchesToDelete_1.length > 0) {
+                                            doesRemoveFrontEndEdit = true;
+                                        }
+                                        parameters.BranchesAfterEdit = parameters.BranchesAfterEdit.filter(function (branch) { return !branchesToDelete_1.includes(branch); });
+                                        selectRemoveFrontend = editMessageWithSymbol(selectRemoveFrontend, doesRemoveFrontEndEdit);
+                                        return [3 /*break*/, 14];
+                                    case 8: return [4 /*yield*/, this_1.askNewBranchName(parameters.BranchesAfterEdit)];
+                                    case 9:
+                                        branchToCreate = _b.sent();
+                                        parameters.BranchesAfterEdit.push(branchToCreate);
+                                        selectAddFrontend = editMessageWithSymbol(selectAddFrontend, true);
+                                        return [3 /*break*/, 14];
+                                    case 10: return [4 /*yield*/, open_1.default("https://" + this_1.region + ".console.aws.amazon.com/amplify/home?region=" + this_1.region + "#/" + appId + "/settings/domains")];
+                                    case 11:
+                                        _b.sent();
+                                        selectDomainManagement = editMessageWithSymbol(selectDomainManagement, true);
+                                        return [3 /*break*/, 14];
+                                    case 12:
+                                        {
+                                            notComplete = false;
+                                            return [3 /*break*/, 14];
+                                        }
+                                        _b.label = 13;
+                                    case 13: throw new Error('Unexpected config type');
+                                    case 14: return [2 /*return*/];
                                 }
-                            ])];
+                            });
+                        };
+                        this_1 = this;
+                        _a.label = 1;
+                    case 1:
+                        if (!notComplete) return [3 /*break*/, 3];
+                        return [5 /*yield**/, _loop_1()];
                     case 2:
-                        selections = _c.sent();
-                        _a = selections[selectConfigKey];
-                        switch (_a) {
-                            case selectConfigAuth: return [3 /*break*/, 3];
-                            case selectConfigRules: return [3 /*break*/, 5];
-                            case selectRemoveFrontend: return [3 /*break*/, 7];
-                            case selectDomainManagement: return [3 /*break*/, 9];
-                            case SELECT_CONFIG_COMPLETION: return [3 /*break*/, 11];
-                        }
-                        return [3 /*break*/, 12];
-                    case 3: return [4 /*yield*/, this.askBaiscAuthQuestion({
-                            configType: parameters.BasicAuthConfig, doesEdit: doesBasicAuthEdit
-                        })];
-                    case 4:
-                        result = _c.sent();
-                        parameters.BasicAuthConfig = result.configType;
-                        doesBasicAuthEdit = result.doesEdit;
-                        selectConfigAuth = editMessageWithSymbol(selectConfigAuth, doesBasicAuthEdit);
-                        return [3 /*break*/, 13];
-                    case 5: return [4 /*yield*/, this.askRedirectRewriteRuleQuestion({
-                            configType: parameters.CustomRules,
-                            doesEdit: doesRulesEdit
-                        })];
-                    case 6:
-                        result = _c.sent();
-                        parameters.CustomRules = result.configType;
-                        doesRulesEdit = result.doesEdit;
-                        selectConfigRules = editMessageWithSymbol(selectConfigRules, doesRulesEdit);
-                        return [3 /*break*/, 13];
-                    case 7:
-                        _b = parameters;
-                        return [4 /*yield*/, this.askWhichBranchesToDeleteQuestion(branches)];
-                    case 8:
-                        _b.BranchesToDelete = _c.sent();
-                        if (parameters.BranchesToDelete.length > 0) {
-                            doesRemoveFrontEndEdit = true;
-                        }
-                        branches = branches.filter(function (branch) { return !parameters.BranchesToDelete.includes(branch); });
-                        selectRemoveFrontend = editMessageWithSymbol(selectRemoveFrontend, doesRemoveFrontEndEdit);
-                        return [3 /*break*/, 13];
-                    case 9: return [4 /*yield*/, open_1.default("https://" + this.region + ".console.aws.amazon.com/amplify/home?region=" + this.region + "#/" + appId + "/settings/domains")];
-                    case 10:
-                        _c.sent();
-                        selectDomainManagement = editMessageWithSymbol(selectDomainManagement, true);
-                        return [3 /*break*/, 13];
-                    case 11:
-                        {
-                            notComplete = false;
-                            return [3 /*break*/, 13];
-                        }
-                        _c.label = 12;
-                    case 12: throw new Error('Unexpected config type');
-                    case 13: return [3 /*break*/, 1];
-                    case 14: return [2 /*return*/, parameters];
+                        _a.sent();
+                        return [3 /*break*/, 1];
+                    case 3: return [2 /*return*/, parameters];
                 }
             });
         });
@@ -242,11 +264,13 @@ var QuestionHelper = /** @class */ (function () {
                                     type: "input",
                                     name: userNameKey,
                                     message: BASIC_AUTH_USERNAME_QUESTION,
+                                    validate: validateLength,
                                     default: basicAuthConfig ? basicAuthConfig.Username : undefined
                                 },
                                 {
                                     type: "password",
                                     name: passwordKey,
+                                    validate: validateLength,
                                     message: BASIC_AUTH_PASSWORD_QUESTION
                                 },
                                 {
@@ -398,18 +422,21 @@ var QuestionHelper = /** @class */ (function () {
                                     type: 'input',
                                     name: sourceKey,
                                     message: EDIT_SOURCE_QUESTION,
+                                    validate: validateLength,
                                     default: customRule ? customRule.Source : undefined
                                 },
                                 {
                                     type: 'input',
                                     name: targetKey,
                                     message: EDIT_TARGET_QUESTION,
+                                    validate: validateLength,
                                     default: customRule ? customRule.Target : undefined
                                 },
                                 {
                                     type: 'input',
                                     name: statusKey,
                                     message: EDIT_STATUS_CODE,
+                                    validate: validateStatusCode,
                                     default: customRule ? customRule.Status : 200
                                 },
                                 {
@@ -507,29 +534,6 @@ var QuestionHelper = /** @class */ (function () {
             });
         });
     };
-    QuestionHelper.prototype.askUpdateInputQuestion = function (defaultValue, updateType) {
-        return __awaiter(this, void 0, void 0, function () {
-            var questionTemplate, updateKey, anwser;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        questionTemplate = "Input " + updateType;
-                        updateKey = 'updateKey';
-                        return [4 /*yield*/, inquirer.prompt([
-                                {
-                                    type: "input",
-                                    name: updateKey,
-                                    message: questionTemplate,
-                                    default: defaultValue ? defaultValue : ''
-                                }
-                            ])];
-                    case 1:
-                        anwser = _a.sent();
-                        return [2 /*return*/, anwser.updateKey];
-                }
-            });
-        });
-    };
     QuestionHelper.prototype.askWhichBranchToUpdateQuestion = function (template) {
         return __awaiter(this, void 0, void 0, function () {
             var questionKey, branchNames, anwser;
@@ -539,26 +543,26 @@ var QuestionHelper = /** @class */ (function () {
                         questionKey = 'question';
                         branchNames = this.templateHelper.getBranchesFromTemplate(template);
                         if (!(branchNames.length > 0)) return [3 /*break*/, 2];
+                        if (branchNames.length === 1) {
+                            return [2 /*return*/, branchNames[0]];
+                        }
                         return [4 /*yield*/, inquirer.prompt([
                                 {
                                     type: "list",
                                     name: questionKey,
                                     message: PICKUP_FRONTEND_QUESTION,
-                                    choices: branchNames.concat([ADD_NEW_FRONTEND])
+                                    choices: branchNames.slice()
                                 }
                             ])];
                     case 1:
                         anwser = _a.sent();
-                        if (anwser[questionKey] !== ADD_NEW_FRONTEND) {
-                            return [2 /*return*/, anwser[questionKey]];
-                        }
-                        _a.label = 2;
+                        return [2 /*return*/, anwser[questionKey]];
                     case 2: return [2 /*return*/, this.askNewBranchName()];
                 }
             });
         });
     };
-    QuestionHelper.prototype.askNewBranchName = function () {
+    QuestionHelper.prototype.askNewBranchName = function (branches) {
         return __awaiter(this, void 0, void 0, function () {
             var questionKey, anwser;
             return __generator(this, function (_a) {
@@ -569,7 +573,8 @@ var QuestionHelper = /** @class */ (function () {
                                 {
                                     type: "input",
                                     name: questionKey,
-                                    message: ADD_NEW_FRONTEND_QUESTION
+                                    message: ADD_NEW_FRONTEND_QUESTION,
+                                    validate: branchValidator(branches)
                                 }
                             ])];
                     case 1:
@@ -713,5 +718,55 @@ function editMessageWithSymbol(input, doesEdit) {
         }
     }
     return input;
+}
+function validateLength(input) {
+    return new Promise(function (resolve, reject) {
+        if (input) {
+            if (input.length <= 0) {
+                console.log(chalk_1.default.red('Input can not be blank'));
+                resolve(false);
+            }
+            else {
+                resolve(true);
+            }
+        }
+        else {
+            console.log(chalk_1.default.red('Input can not be blank'));
+            resolve(false);
+        }
+    });
+}
+function branchValidator(branches) {
+    var validator = function (input) { return new Promise(function (resolve, reject) {
+        if (input) {
+            if (input.length <= 0) {
+                console.log(chalk_1.default.red('Input can not be blank'));
+                resolve(false);
+            }
+            else {
+                if (branches && branches.includes(input)) {
+                    console.log(chalk_1.default.red('The frontend environment already exists. Please input a new name'));
+                    resolve(false);
+                }
+                resolve(true);
+            }
+        }
+        else {
+            console.log(chalk_1.default.red('Input can not be blank'));
+            resolve(false);
+        }
+    }); };
+    return validator;
+}
+function validateStatusCode(input) {
+    return new Promise(function (resolve, reject) {
+        if (typeof (input) === 'number') {
+            resolve(true);
+        }
+        else {
+            console.log(chalk_1.default.red('Status code can only be number'));
+            resolve(false);
+        }
+    });
 }
 //# sourceMappingURL=question-helper.js.map

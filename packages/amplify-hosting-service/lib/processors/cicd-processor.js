@@ -61,8 +61,7 @@ var CICDProcessor = /** @class */ (function () {
         this.amplifyHelper = new index_1.AmplifyHelper(context);
         this.pathHelper = new index_1.PathHelper(context);
         this.region = this.commonHelper.getRegion();
-        this.currentEnv = this.context.exeInfo.localEnvInfo.envName;
-        this.env = this.context.exeInfo.localEnvInfo.envName;
+        this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
     }
     CICDProcessor.prototype.publish = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -121,7 +120,7 @@ var CICDProcessor = /** @class */ (function () {
                                 appId: appId
                             }
                         };
-                        this.configHelper.updateTeamConfig(this.env, hostConfig);
+                        this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
                         this.configHelper.writeToAmplifyMeta('CICD');
                         return [2 /*return*/];
                 }
@@ -142,7 +141,7 @@ var CICDProcessor = /** @class */ (function () {
                                 appId: appId
                             }
                         };
-                        this.configHelper.updateTeamConfig(this.env, hostConfig);
+                        this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
                         this.configHelper.writeToAmplifyMeta('CICD');
                         return [2 /*return*/];
                 }
@@ -173,7 +172,7 @@ var CICDProcessor = /** @class */ (function () {
                                 appId: appId
                             }
                         };
-                        this.configHelper.updateTeamConfig(this.env, hostConfig);
+                        this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
                         this.configHelper.writeToAmplifyMeta('CICD');
                         return [2 /*return*/];
                 }

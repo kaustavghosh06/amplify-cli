@@ -28,7 +28,6 @@ export class ManualProcessor implements Processor {
 
     constructor(context: AmplifyContext) {
         this.context = context;
-        this.currentEnv = this.context.exeInfo.localEnvInfo.envName;
         this.templateHelper = new TemplateHelper(context);
         this.pathHelper = new PathHelper(context);
         this.stackHelper = new StackHelper(context);
@@ -37,16 +36,19 @@ export class ManualProcessor implements Processor {
         this.questionHelper = new QuestionHelper(context);
         this.commonHelper = new CommonHelper(context);
         this.region = this.commonHelper.getRegion();
+        this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
         this.builder = new Builder();
         this.pathHelper.ensureAmplifyConsoleFolder();
     }
 
-    private async initTemplate(stackName: string): Promise<CFNTemplate> {
+    private async initTemplate(stackName: string, doWriteMeta?: boolean): Promise<CFNTemplate> {
         let template: CFNTemplate = await this.templateHelper.generateTemplate(stackName);
         this.currentBranch = await this.questionHelper.askWhichBranchToUpdateQuestion(template);
         this.templateHelper.addBranchToTemplate(template, this.currentBranch);
         this.templateHelper.writeAppTemplate(template);
-        this.configHelper.writeToAmplifyMeta('Manual');
+        if (doWriteMeta) {
+            this.configHelper.writeToAmplifyMeta('Manual');
+        }
         return template;
     }
 
@@ -78,7 +80,7 @@ export class ManualProcessor implements Processor {
     }
 
     private async buildResource(doBuild: boolean): Promise<string> {
-        const { projectConfig } = this.context.exeInfo;
+        const projectConfig = this.commonHelper.getProjectConfig();
         const frontendConfig = projectConfig[projectConfig.frontend].config;
         const projectPath = this.pathHelper.getProjectPath();
         const buildPath = path.join(projectPath, frontendConfig.DistributionDir);
@@ -90,9 +92,16 @@ export class ManualProcessor implements Processor {
         return zipFilePath;
     }
 
-    private async publishCore(doBuild: boolean): Promise<void> {
+    private async publishCore(isFirstTime: boolean): Promise<void> {
+        let doBuild = false;
+        let doWriteConfig = false;
+        if (isFirstTime) {
+            doBuild = true;
+            doWriteConfig = true;
+        }
+
         this.stackName = await this.configHelper.initStackName();
-        let template = await this.initTemplate(this.stackName);
+        let template = await this.initTemplate(this.stackName, doWriteConfig);
         const doDeploy = await this.questionHelper.askDeployNowQuestion(this.currentBranch);
         if (!doDeploy) {
             return;
@@ -122,6 +131,7 @@ export class ManualProcessor implements Processor {
             return;
         }
         await this.deployResource(template);
+        console.log(`Please run ${chalk.yellow('amplify publish')} if created new frontend envs`);
     }
 
     async status(): Promise<void> {

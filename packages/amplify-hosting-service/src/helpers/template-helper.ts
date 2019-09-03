@@ -5,6 +5,11 @@ import defaultTemplate from '../templates/template.json';
 import defaultBranchTemplate from '../templates/branch-template.json';
 import { AMPLIFY_APP_LOGIC_ID } from '../constants';
 
+type BranchesToChange = {
+    branchesToDelete: string [];
+    branchesToCreate: string [];
+}
+
 export class TemplateHelper {
     private context: AmplifyContext;
     private pathHelper: PathHelper;
@@ -59,14 +64,19 @@ export class TemplateHelper {
     }
 
     updateTemplate(template: CFNTemplate, parameters: CFNParameters) {
-        if (parameters.BranchesToDelete) {
-            parameters.BranchesToDelete.forEach(branch => {
-                this.deleteBranchFromTemplate(template, branch);
-            });
+        if (parameters.BranchesAfterEdit) {
+            const branchesToChange: BranchesToChange = caculateBranchesToChange(parameters.Branches, parameters.BranchesAfterEdit);
+            for (const branchToDelete of branchesToChange.branchesToDelete) {
+                this.deleteBranchFromTemplate(template, branchToDelete);
+            }
+
+            for (const branchToCreate of branchesToChange.branchesToCreate) {
+                this.addBranchToTemplate(template, branchToCreate);
+            }
         }
         Object.keys(parameters).forEach(key => {
             if (parameters[key]) {
-                if (key !== 'BranchesToDelete') {
+                if (key !== 'BranchesAfterEdit' && key !== 'Branches') {
                     template.Resources.AmplifyApp.Properties[key] = parameters[key];
                 }
             }
@@ -103,6 +113,24 @@ export class TemplateHelper {
     loadTemplate(): CFNTemplate {
         return this.context.amplify.readJsonFile(this.templatePath);
     }
+}
+
+function caculateBranchesToChange(currentBranches: string[], branchesAfterEdit: string[]): BranchesToChange {
+    let branchesToChange: BranchesToChange = {
+        branchesToCreate: [],
+        branchesToDelete: []
+    };
+    for (const currentBranch of currentBranches) {
+        if (!branchesAfterEdit.includes(currentBranch)) {
+            branchesToChange.branchesToDelete.push(currentBranch);
+        }
+    };
+    for (const branchAfterEdit of branchesAfterEdit) {
+        if (!currentBranches.includes(branchAfterEdit)) {
+            branchesToChange.branchesToCreate.push(branchAfterEdit);
+        }
+    }
+    return branchesToChange;
 }
 
 

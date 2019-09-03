@@ -3,11 +3,6 @@ export interface LocalEnvInfo {
     projectPath: string
 }
 
-export interface ExeInfo {
-    localEnvInfo: LocalEnvInfo,
-    projectConfig: any,
-    amplifyMeta: AmplifyMeta
-}
 
 export interface AmplifyMeta {
     providers: {
@@ -30,6 +25,9 @@ export interface Amplify {
     readJsonFile: (path: string) => any,
     updateamplifyMetaAfterResourceDelete: (category: string, resourceName: string) => void,
     updateamplifyMetaAfterResourceAdd: (category: string, resourceName: string, option: AmplifyMetaConfig) => void,
+    getEnvInfo: () => LocalEnvInfo,
+    getProjectConfig: () => any,
+    getProjectMeta: () => AmplifyMeta,
     pathManager: PathManager
 }
 
@@ -39,7 +37,6 @@ export interface Print {
 
 export interface AmplifyContext {
     amplify: Amplify,
-    exeInfo: ExeInfo,
     print: Print
 }
 
@@ -48,7 +45,8 @@ export interface CFNParameters {
     Description?: string,
     BasicAuthConfig?: BasicAuthConfig,
     CustomRules?: CustomRule[],
-    BranchesToDelete?: string[]
+    BranchesAfterEdit?: string[],
+    Branches?: string[]
 }
 
 export interface BasicAuthConfig {
@@ -132,3 +130,5 @@ export interface AmplifyMetaConfig {
 }
 
 export type DeployType = 'Manual' | 'CICD'
+
+export type BranchOperation = 'Delete' | 'Create'

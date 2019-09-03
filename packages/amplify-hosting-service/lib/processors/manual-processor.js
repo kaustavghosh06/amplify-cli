@@ -58,7 +58,6 @@ var open_1 = __importDefault(require("open"));
 var ManualProcessor = /** @class */ (function () {
     function ManualProcessor(context) {
         this.context = context;
-        this.currentEnv = this.context.exeInfo.localEnvInfo.envName;
         this.templateHelper = new index_1.TemplateHelper(context);
         this.pathHelper = new index_1.PathHelper(context);
         this.stackHelper = new index_1.StackHelper(context);
@@ -67,10 +66,11 @@ var ManualProcessor = /** @class */ (function () {
         this.questionHelper = new index_1.QuestionHelper(context);
         this.commonHelper = new index_1.CommonHelper(context);
         this.region = this.commonHelper.getRegion();
+        this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
         this.builder = new builder_1.Builder();
         this.pathHelper.ensureAmplifyConsoleFolder();
     }
-    ManualProcessor.prototype.initTemplate = function (stackName) {
+    ManualProcessor.prototype.initTemplate = function (stackName, doWriteMeta) {
         return __awaiter(this, void 0, void 0, function () {
             var template, _a;
             return __generator(this, function (_b) {
@@ -84,7 +84,9 @@ var ManualProcessor = /** @class */ (function () {
                         _a.currentBranch = _b.sent();
                         this.templateHelper.addBranchToTemplate(template, this.currentBranch);
                         this.templateHelper.writeAppTemplate(template);
-                        this.configHelper.writeToAmplifyMeta('Manual');
+                        if (doWriteMeta) {
+                            this.configHelper.writeToAmplifyMeta('Manual');
+                        }
                         return [2 /*return*/, template];
                 }
             });
@@ -154,7 +156,7 @@ var ManualProcessor = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        projectConfig = this.context.exeInfo.projectConfig;
+                        projectConfig = this.commonHelper.getProjectConfig();
                         frontendConfig = projectConfig[projectConfig.frontend].config;
                         projectPath = this.pathHelper.getProjectPath();
                         buildPath = path.join(projectPath, frontendConfig.DistributionDir);
@@ -172,17 +174,23 @@ var ManualProcessor = /** @class */ (function () {
             });
         });
     };
-    ManualProcessor.prototype.publishCore = function (doBuild) {
+    ManualProcessor.prototype.publishCore = function (isFirstTime) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, template, doDeploy, zipFilePath;
+            var doBuild, doWriteConfig, _a, template, doDeploy, zipFilePath;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        doBuild = false;
+                        doWriteConfig = false;
+                        if (isFirstTime) {
+                            doBuild = true;
+                            doWriteConfig = true;
+                        }
                         _a = this;
                         return [4 /*yield*/, this.configHelper.initStackName()];
                     case 1:
                         _a.stackName = _b.sent();
-                        return [4 /*yield*/, this.initTemplate(this.stackName)];
+                        return [4 /*yield*/, this.initTemplate(this.stackName, doWriteConfig)];
                     case 2:
                         template = _b.sent();
                         return [4 /*yield*/, this.questionHelper.askDeployNowQuestion(this.currentBranch)];

@@ -17,7 +17,6 @@ export class CICDProcessor implements Processor {
     private pathHelper: PathHelper;
     private currentEnv: string;
     private region: string;
-    private env: string;
 
     constructor(context: AmplifyContext) {
         this.context = context;
@@ -27,8 +26,7 @@ export class CICDProcessor implements Processor {
         this.amplifyHelper = new AmplifyHelper(context);
         this.pathHelper = new PathHelper(context);
         this.region = this.commonHelper.getRegion();
-        this.currentEnv = this.context.exeInfo.localEnvInfo.envName;
-        this.env = this.context.exeInfo.localEnvInfo.envName;
+        this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
     }
 
     async publish() {
@@ -57,7 +55,7 @@ export class CICDProcessor implements Processor {
                 appId
             }
         };
-        this.configHelper.updateTeamConfig(this.env, hostConfig);
+        this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
         this.configHelper.writeToAmplifyMeta('CICD');
     }
 
@@ -69,7 +67,7 @@ export class CICDProcessor implements Processor {
                 appId
             }
         };
-        this.configHelper.updateTeamConfig(this.env, hostConfig);
+        this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
         this.configHelper.writeToAmplifyMeta('CICD');
     }
 
@@ -87,7 +85,7 @@ export class CICDProcessor implements Processor {
                 appId
             }
         };
-        this.configHelper.updateTeamConfig(this.env, hostConfig);
+        this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
         this.configHelper.writeToAmplifyMeta('CICD');
     }
 

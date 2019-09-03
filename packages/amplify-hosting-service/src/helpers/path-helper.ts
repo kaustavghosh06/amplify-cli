@@ -1,16 +1,19 @@
 import * as path from 'path';
 import { AmplifyContext } from '../types';
+import { CommonHelper } from './index';
 import * as Constants from '../constants';
 import * as fs from 'fs-extra';
 
 export class PathHelper {
     private context: AmplifyContext;
+    private commonHelper: CommonHelper;
     constructor(context: AmplifyContext) {
         this.context = context;
+        this.commonHelper = new CommonHelper(context);
     }
 
     getProjectPath(): string {
-        return this.context.exeInfo.localEnvInfo.projectPath;
+        return this.commonHelper.getLocalEnvInfo().projectPath;
     }
 
     getAmplifyPath(): string {

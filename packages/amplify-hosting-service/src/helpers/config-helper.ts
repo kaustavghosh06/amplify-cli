@@ -136,7 +136,7 @@ export class ConfigHelper {
     }
 
     async initStackName(): Promise<string> {
-        const { envName } = this.context.exeInfo.localEnvInfo;
+        const { envName } = this.commonHelper.getLocalEnvInfo();
         if (this.loadStackNameByEnvFromTeamConfig(envName)) {
             return this.loadStackNameByEnvFromTeamConfig(envName);
         } else {
@@ -145,7 +145,7 @@ export class ConfigHelper {
     }
 
     async initAppId(): Promise<string> {
-        const { envName } = this.context.exeInfo.localEnvInfo;
+        const { envName } = this.commonHelper.getLocalEnvInfo();
         if (this.loadAppIdByEnvFromTeamConfig(envName)) {
             return this.loadAppIdByEnvFromTeamConfig(envName);
         } else {
