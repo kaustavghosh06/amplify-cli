@@ -1,10 +1,10 @@
 {
-  "name": "amplify-console-ts",
+  "name": "amplify-hosting-service",
   "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
-  "author": "",
-  "license": "ISC",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/request-promise": "^4.1.44",
     "aws-sdk": "^2.511.0",
