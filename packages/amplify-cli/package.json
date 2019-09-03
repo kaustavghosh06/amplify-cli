@@ -26,6 +26,7 @@
     "amplify-category-auth": "1.13.0",
     "amplify-category-function": "1.13.0",
     "amplify-category-hosting": "1.8.0",
+    "amplify-hosting-service": "1.0.0",
     "amplify-category-interactions": "1.12.0",
     "amplify-category-notifications": "1.10.0",
     "amplify-category-predictions": "1.6.0",

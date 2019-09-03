@@ -3,17 +3,23 @@ const path = require('path');
 const sequential = require('promise-sequential');
 const constants = require('./constants');
 const supportedServices = require('./supported-services');
+const addAmplifyHosting = require('amplify-hosting-service').add;
+const publishAmplifyHosting = require('amplify-hosting-service').publish;
+const configureAmplifyHosting = require('amplify-hosting-service').configure;
 
 const category = 'hosting';
 
 function getAvailableServices(context) {
   const availableServices = [];
   const projectConfig = context.amplify.getProjectConfig();
+
   Object.keys(supportedServices).forEach((service) => {
-    if (projectConfig.providers.includes(supportedServices[service].provider)) {
+    if (projectConfig.providers.includes(supportedServices[service].provider) ||
+        supportedServices[service].provider === 'NONE') {
       availableServices.push(service);
     }
   });
+
   return availableServices;
 }
 
@@ -57,6 +63,15 @@ function runServiceAction(context, service, action, args) {
     context.exeInfo.categoryMeta = context.exeInfo.amplifyMeta[constants.CategoryName];
     if (context.exeInfo.categoryMeta) {
       context.exeInfo.serviceMeta = context.exeInfo.categoryMeta[service];
+    }
+  }
+
+  if (service === 'AmplifyConsole') {
+    switch (action) {
+      case 'enable': return addAmplifyHosting(context);
+      case 'publish': return publishAmplifyHosting(context);
+      case 'configure': return configureAmplifyHosting(context);
+      default: context.print.erro('Action not supported');
     }
   }
   const serviceModule = require(path.join(__dirname, `${service}/index.js`));

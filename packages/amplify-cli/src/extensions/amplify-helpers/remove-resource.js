@@ -6,6 +6,7 @@ const {
   updateBackendConfigAfterResourceRemove,
 } = require('./update-backend-config');
 const { removeResourceParameters } = require('./envResourceParams');
+const removeAmplifyHosting = require('amplify-hosting-service').remove;
 
 
 async function forceRemoveResource(context, category, name, dir) {
@@ -52,6 +53,10 @@ function removeResource(context, category) {
   return inquirer.prompt(question)
     .then((answer) => {
       const resourceName = answer.resource;
+
+      if (category === 'hosting' && resourceName === 'AmplifyConsole') {
+        return removeAmplifyHosting(context);
+      }
       const resourceDir = path.normalize(path.join(
         pathManager.getBackendDirPath(),
         category,
