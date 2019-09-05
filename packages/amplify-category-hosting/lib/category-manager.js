@@ -71,7 +71,7 @@ function runServiceAction(context, service, action, args) {
       case 'enable': return addAmplifyHosting(context);
       case 'publish': return publishAmplifyHosting(context);
       case 'configure': return configureAmplifyHosting(context);
-      default: context.print.erro('Action not supported');
+      default: context.print.error('Action not supported');
     }
   }
   const serviceModule = require(path.join(__dirname, `${service}/index.js`));

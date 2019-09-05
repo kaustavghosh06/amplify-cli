@@ -52,6 +52,14 @@ export class PathHelper {
         return path.join(this.getBackEndPath(), Constants.BACKEND_CONFIG_FILE_NAME);
     }
 
+    getDotConfigPath(): string {
+        return path.join(this.getAmplifyPath(), Constants.DOT_CONFIG);
+    }
+
+    getLocalAWSInfoPath(): string {
+        return path.join(this.getDotConfigPath(), Constants.LOCAL_AWS_INFO);
+    }
+
     ensureAmplifyConsoleFolder(): void {
         fs.ensureDirSync(this.getAmplifyPath());
         fs.ensureDirSync(this.getBackEndPath());

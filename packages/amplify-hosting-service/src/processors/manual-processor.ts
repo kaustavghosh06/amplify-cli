@@ -1,5 +1,5 @@
 import { Processor } from './processor-interface';
-import { PathHelper, TemplateHelper, CommonHelper, AmplifyHelper, StackHelper, QuestionHelper } from '../helpers/index';
+import { PathHelper, TemplateHelper, CommonHelper, AmplifyHelper, StackHelper, QuestionHelper, CleanHelper } from '../helpers/index';
 import { CFNParameters, AmplifyContext, CFNTemplate, App, HostingConfig, DeployType } from '../types';
 import { Builder } from '../build/builder';
 import * as fs from 'fs-extra';
@@ -11,6 +11,10 @@ import ora from 'ora';
 import chalk from 'chalk';
 import open from 'open';
 
+const RUN_CONFIGURE_MESSAGE = `Run ${chalk.green('amplify hosting configure')} to setup custom domains, password protection, and redirects.`;
+const RUN_PUBLISH_MESSAGE = `Please run ${chalk.yellow('amplify publish')} if created new frontend envs`;
+const URL_MESSAGE = 'Amplify URL: ';
+const URLS_MESSAGE = `Amplify Console Frontend URL(s):`;
 export class ManualProcessor implements Processor {
     private context: AmplifyContext;
     private templateHelper: TemplateHelper;
@@ -20,6 +24,7 @@ export class ManualProcessor implements Processor {
     private configHelper: ConfigHelper;
     private questionHelper: QuestionHelper;
     private commonHelper: CommonHelper;
+    private cleanHelper: CleanHelper;
     private builder: Builder;
     private currentBranch: string;
     private currentEnv: string;
@@ -35,6 +40,7 @@ export class ManualProcessor implements Processor {
         this.configHelper = new ConfigHelper(context);
         this.questionHelper = new QuestionHelper(context);
         this.commonHelper = new CommonHelper(context);
+        this.cleanHelper = new CleanHelper(context);
         this.region = this.commonHelper.getRegion();
         this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
         this.builder = new Builder();
@@ -74,9 +80,12 @@ export class ManualProcessor implements Processor {
         const app: App = { appId: outputs.AppId, branchName };
         await this.amplifyHelper.publishFileToAmplify(zipFilePath, app);
         fs.removeSync(zipFilePath);
-        console.log('Amplify URL: ');
-        console.log(` ${`${branchName}.${defaultDomain}`}`);
-        console.log(`Run ${chalk.green('amplify hosting configure')} to setup custom domains, password protection, and redirects.`);
+        console.log(URL_MESSAGE);
+        console.log(`https://${`${branchName}.${defaultDomain}`}`);
+        console.log(RUN_CONFIGURE_MESSAGE);
+        if (await this.questionHelper.askViewUrlQuestion()) {
+            await open(`https://${`${branchName}.${defaultDomain}`}`);
+        }
     }
 
     private async buildResource(doBuild: boolean): Promise<string> {
@@ -131,7 +140,7 @@ export class ManualProcessor implements Processor {
             return;
         }
         await this.deployResource(template);
-        console.log(`Please run ${chalk.yellow('amplify publish')} if created new frontend envs`);
+        console.log(RUN_PUBLISH_MESSAGE);
     }
 
     async status(): Promise<void> {
@@ -146,23 +155,12 @@ export class ManualProcessor implements Processor {
                 table.push([key, domain]);
             });
         });
-        console.log(`Amplify Console Frontend URL(s):`);
+        console.log(URLS_MESSAGE);
         console.log(table.toString());
     }
 
-    async remove(stackName: string) {
-        const spinner = ora();
-        spinner.start('Deleting stack');
-        await this.stackHelper.deleteCFNStack(stackName);
-        spinner.succeed(`Completed clean cloud resources`);
-        //delete info in teamprovider
-        const localSpinner = ora();
-        localSpinner.start();
-        this.configHelper.deleteHostingForTeamConfig(this.currentEnv);
-        this.configHelper.deleteAmplifyMeta();
-        //delete folder
-        fs.removeSync(this.pathHelper.getAmplifyConsolePath());
-        localSpinner.succeed(`Completed clean local resources`);
+    async remove() {
+        await this.cleanHelper.clean();
     }
 
     async console() {

@@ -7,8 +7,8 @@ export class ClientFactory {
         this.context = context;
     }
 
-    async getCFNClient(): Promise<AWS.CloudFormation> {
-        const aws = await this.getConfiguredSdk();
+    async getCFNClient(envName?: string): Promise<AWS.CloudFormation> {
+        const aws = await this.getConfiguredSdk(envName);
         return new aws.CloudFormation();
     }
 
@@ -17,8 +17,8 @@ export class ClientFactory {
         return new aws.Amplify();
     }
 
-    async getConfiguredSdk(): Promise<any> {
-        const awsSdk = await cfnProvider.getConfiguredAWSClient(this.context);
+    async getConfiguredSdk(envName?: string): Promise<any> {
+        const awsSdk = await cfnProvider.getConfiguredAWSClient(this.context, envName);
         const awsItem = await awsSdk.configureWithCreds(this.context);
         return awsItem;
     }

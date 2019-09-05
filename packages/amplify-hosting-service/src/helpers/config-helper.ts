@@ -1,4 +1,4 @@
-import { AmplifyContext, HostingConfig, AmplifyMetaConfig, DeployType, Categories } from '../types';
+import { AmplifyContext, HostingConfig, AmplifyMetaConfig, DeployType, Categories, AmplifyConfig } from '../types';
 import { PathHelper, AmplifyHelper, StackHelper, CommonHelper } from './index';
 import { AMPLIFY_CONSOLE, CATAGORIE } from '../constants';
 import * as fs from 'fs-extra';
@@ -36,7 +36,7 @@ export class ConfigHelper {
     updateTeamConfig(env: string, hostConfig: HostingConfig) {
         let content = this.loadConfig(this.teamProviderFilePath);
         if (!content[env].categories) {
-            content[env].categories = { host: hostConfig };
+            content[env].categories = { hosting: hostConfig };
         } else {
             content[env].categories.hosting = hostConfig;
         }
@@ -101,6 +101,20 @@ export class ConfigHelper {
         let content = this.loadConfig(this.teamProviderFilePath);
         let stackName = await this.getExistStackNameFromTeamConfig(content);
         return stackName ? stackName : `${this.commonHelper.generateUniqueStackName()}`
+    }
+
+    loadAllEnvsFromTeamConfig(): Map<string, AmplifyConfig>  {
+        let context = this.loadConfig(this.teamProviderFilePath);
+        let envsMap = new Map<string, AmplifyConfig>();
+        Object.keys(context).forEach( env => {
+            let categories: Categories = context[env].categories;
+            if (categories &&
+                categories.hosting &&
+                categories.hosting.amplifyconsole) {
+                envsMap.set(env, categories.hosting.amplifyconsole);
+            }
+        });
+        return envsMap;
     }
 
     loadStackNameByEnvFromTeamConfig(envName: string): string {

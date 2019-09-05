@@ -47,6 +47,16 @@ Once you complete the wizard please ${chalk.red('return')} here and enter your b
 const INPUT_APP_ARN_QUESTION = `Please enter your Amplify Console App Arn (App Settings > General):`;
 const CHANGE_APP_ARN_QUESTION = `Please enter your new Amplify Console App Arn (App Settings > General):`;
 
+const VIEW_APP_QUESTION = `You have set up CI/CD with Amplify Console. \
+Run ${chalk.red('git push')} from a connected branch to publish updates. \
+Open your Amplify Console app to view connected branches?`
+
+const VIEW_URL_QUESTION = 'Would you like to open the deployed website?';
+
+const INPUT_BLANK_VALIDATION = 'Input can not be blank';
+const STATUS_CODE_VALIDATION = 'Status code can only be number';
+const FRONTEND_NAME_VALIDATION = 'The frontend environment already exists. Please input a new name';
+
 interface QuestionType {
     configType?: BasicAuthConfig | CustomRule[] | string[],
     doesEdit: boolean
@@ -457,13 +467,13 @@ export class QuestionHelper {
         return Utils.getAppIdFromAppArn(anwser[questionKey]);
     }
 
-    async askCICDConfirmQuestion(): Promise<boolean> {
+    private async askConfirmQuestion(message: string): Promise<boolean> {
         const questionKey = 'question';
         const anwser = await inquirer.prompt([
             {
                 type: "confirm",
                 name: questionKey,
-                message: CICD_CONFIRM_QUESTION,
+                message: message,
                 default: true
             }
         ]);
@@ -495,6 +505,18 @@ export class QuestionHelper {
         ]);
         return anwser[questionKey];
     }
+
+    async askCICDConfirmQuestion() {
+        return this.askConfirmQuestion(CICD_CONFIRM_QUESTION);
+    }
+
+    async askViewAppQuestion() {
+        return this.askConfirmQuestion(VIEW_APP_QUESTION);
+    }
+
+    async askViewUrlQuestion() {
+        return this.askConfirmQuestion(VIEW_URL_QUESTION);
+    }
 }
 
 function getDeployNowQuestion(envName?: string): string {
@@ -524,13 +546,13 @@ function validateLength(input: string | undefined): Promise<boolean> {
     return new Promise((resolve, reject) => {
         if (input) {
             if (input.length <= 0) {
-                console.log(chalk.red('Input can not be blank'));
+                console.log(chalk.red(INPUT_BLANK_VALIDATION));
                 resolve(false);
             } else {
                 resolve(true);
             }
         } else {
-            console.log(chalk.red('Input can not be blank'));
+            console.log(chalk.red(FRONTEND_NAME_VALIDATION));
             resolve(false);
         }
     });
@@ -540,17 +562,17 @@ function branchValidator(branches?: string[]): (input: string) => Promise<boolea
     const validator = (input: string) => new Promise<boolean>((resolve, reject) => {
         if (input) {
             if (input.length <= 0) {
-                console.log(chalk.red('Input can not be blank'));
+                console.log(chalk.red(INPUT_BLANK_VALIDATION));
                 resolve(false);
             } else {
                 if (branches && branches.includes(input)) {
-                    console.log(chalk.red('The frontend environment already exists. Please input a new name'));
+                    console.log(chalk.red());
                     resolve(false);
                 }
                 resolve(true);
             }
         } else {
-            console.log(chalk.red('Input can not be blank'));
+            console.log(chalk.red(INPUT_BLANK_VALIDATION));
             resolve(false);
         }
     });
@@ -562,7 +584,7 @@ function validateStatusCode(input: any): Promise<boolean> {
         if (typeof (input) === 'number') {
             resolve(true);
         } else {
-            console.log(chalk.red('Status code can only be number'));
+            console.log(chalk.red(STATUS_CODE_VALIDATION));
             resolve(false);
         }
     })

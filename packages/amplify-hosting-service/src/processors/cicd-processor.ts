@@ -1,5 +1,5 @@
 import { Processor } from './processor-interface';
-import { CommonHelper, QuestionHelper, AmplifyHelper, PathHelper } from '../helpers/index'
+import { CommonHelper, QuestionHelper, AmplifyHelper, PathHelper, CleanHelper} from '../helpers/index'
 import { AmplifyContext, HostingConfig } from '../types';
 import open from 'open';
 import { ConfigHelper } from '../helpers/config-helper';
@@ -8,6 +8,8 @@ import ora from 'ora';
 import * as fs from 'fs-extra';
 import chalk from 'chalk';
 
+const CONFIGURE_FIRST_MESSAGE = `Amplify Console app is not detected. Please run ${chalk.yellow('amplify hosting configure')} first`;
+
 export class CICDProcessor implements Processor {
     private context: AmplifyContext;
     private commonHelper: CommonHelper;
@@ -15,6 +17,7 @@ export class CICDProcessor implements Processor {
     private questionHelper: QuestionHelper;
     private amplifyHelper: AmplifyHelper;
     private pathHelper: PathHelper;
+    private cleanHelper: CleanHelper;
     private currentEnv: string;
     private region: string;
 
@@ -25,6 +28,7 @@ export class CICDProcessor implements Processor {
         this.questionHelper = new QuestionHelper(context);
         this.amplifyHelper = new AmplifyHelper(context);
         this.pathHelper = new PathHelper(context);
+        this.cleanHelper = new CleanHelper(context);
         this.region = this.commonHelper.getRegion();
         this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
     }
@@ -34,12 +38,13 @@ export class CICDProcessor implements Processor {
         if (appId) {
             await this.reuseApp(appId);
         } else {
-            await this.createNewApp();
+            console.log(CONFIGURE_FIRST_MESSAGE);
         }
     }
 
     async add() {
         await this.createNewApp();
+        this.configHelper.writeToAmplifyMeta('CICD');
     }
 
     private async createNewApp() {
@@ -56,11 +61,9 @@ export class CICDProcessor implements Processor {
             }
         };
         this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
-        this.configHelper.writeToAmplifyMeta('CICD');
     }
 
     private async reuseApp(appId: string) {
-        await open(`https://${this.region}.console.aws.amazon.com/amplify/home?region=${this.region}#/${appId}`);
         let hostConfig: HostingConfig = {
             amplifyconsole: {
                 deployType: 'CICD',
@@ -68,13 +71,15 @@ export class CICDProcessor implements Processor {
             }
         };
         this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
-        this.configHelper.writeToAmplifyMeta('CICD');
+        if (await this.questionHelper.askViewAppQuestion()) {
+            await open(`https://${this.region}.console.aws.amazon.com/amplify/home?region=${this.region}#/${appId}`);
+        }
     }
 
     async configure() {
         let appId = await this.configHelper.initAppId();
         if (!appId) {
-            console.log(chalk.red('Please publish your app first'));
+            await this.createNewApp();
             return;
         }
         appId = await this.questionHelper.askChangeAppIdQuestion(appId);
@@ -86,13 +91,12 @@ export class CICDProcessor implements Processor {
             }
         };
         this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
-        this.configHelper.writeToAmplifyMeta('CICD');
     }
 
     async status() {
         let appId = await this.configHelper.initAppId();
         if (!appId) {
-            chalk.red('Please publish your app first');
+            console.log(CONFIGURE_FIRST_MESSAGE);
             return;
         }
         const branchMap = await this.amplifyHelper.generateBranchDomainMap(appId);
@@ -108,13 +112,8 @@ export class CICDProcessor implements Processor {
         console.log(table.toString());
     }
 
-    async remove(appId: string) {
-        const localSpinner = ora('Deleting local resources').start();
-        this.configHelper.deleteHostingForTeamConfig(this.currentEnv);
-        this.configHelper.deleteAmplifyMeta();
-        //delete folder
-        fs.removeSync(this.pathHelper.getAmplifyConsolePath());
-        localSpinner.succeed(`Completed clean local resources`);
+    async remove() {
+        await this.cleanHelper.clean();
     }
 
     async console() {
@@ -122,7 +121,7 @@ export class CICDProcessor implements Processor {
         if (appId) {
             await open(`https://${this.region}.console.aws.amazon.com/amplify/home?region=${this.region}#/${appId}`);
         } else {
-            console.log(chalk.red('Please run amplify publish first'));
+            console.log(CONFIGURE_FIRST_MESSAGE);
         }
     }
 }

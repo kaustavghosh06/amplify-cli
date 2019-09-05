@@ -10,5 +10,6 @@ export const TEAM_PROVIDER_FILE_NAME = 'team-provider-info.json';
 export const AMPLIFY_META_FILE_NAME = 'amplify-meta.json';
 export const AMPLIFY_CONSOLE = 'AmplifyConsole';
 export const BACKEND_CONFIG_FILE_NAME = 'backend-config.json';
-
+export const DOT_CONFIG = '.config';
+export const LOCAL_AWS_INFO = 'local-aws-info.json';
 
