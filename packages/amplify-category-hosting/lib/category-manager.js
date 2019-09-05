@@ -6,6 +6,7 @@ const supportedServices = require('./supported-services');
 const addAmplifyHosting = require('amplify-hosting-service').add;
 const publishAmplifyHosting = require('amplify-hosting-service').publish;
 const configureAmplifyHosting = require('amplify-hosting-service').configure;
+const consoleAmplifyHosting = require('amplify-hosting-service').console;
 
 const category = 'hosting';
 
@@ -71,11 +72,13 @@ function runServiceAction(context, service, action, args) {
       case 'enable': return addAmplifyHosting(context);
       case 'publish': return publishAmplifyHosting(context);
       case 'configure': return configureAmplifyHosting(context);
+      case 'console': return consoleAmplifyHosting(context);
       default: context.print.error('Action not supported');
     }
+  } else {
+    const serviceModule = require(path.join(__dirname, `${service}/index.js`));
+    return serviceModule[action](context, args);
   }
-  const serviceModule = require(path.join(__dirname, `${service}/index.js`));
-  return serviceModule[action](context, args);
 }
 
 async function migrate(context) {
