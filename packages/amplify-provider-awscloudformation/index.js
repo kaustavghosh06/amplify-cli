@@ -44,8 +44,8 @@ function buildResources(context, category, resourceName) {
   return resourceBuilder.run(context, category, resourceName);
 }
 
-async function getConfiguredAWSClient(context, category, action) {
-  await aws.configureWithCreds(context);
+async function getConfiguredAWSClient(context, category, action, envName) {
+  await aws.configureWithCreds(context, envName);
   category = category || 'missing';
   action = action || 'missing';
   const userAgentAction = `${category}:${action[0]}`;
