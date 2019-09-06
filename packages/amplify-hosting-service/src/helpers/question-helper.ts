@@ -43,7 +43,7 @@ const ADD_NEW_FRONTEND = 'create new';
 const ADD_NEW_FRONTEND_QUESTION = "Enter a frontend environment name (e.g. dev or prod):";
 
 const CICD_CONFIRM_QUESTION = `Continuous deployment is configued ${chalk.red('in')} the browser.\
-Once you complete the wizard please ${chalk.red('return')} here and enter your branch URL. Continue:`;
+Once you complete the wizard please ${chalk.red('return')} here and enter your app Arn. Continue:`;
 const INPUT_APP_ARN_QUESTION = `Please enter your Amplify Console App Arn (App Settings > General):`;
 const CHANGE_APP_ARN_QUESTION = `Please enter your new Amplify Console App Arn (App Settings > General):`;
 

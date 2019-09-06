@@ -126,7 +126,8 @@ export interface HostingMetaConfig {
 
 export interface AmplifyMetaConfig {
     service: string
-    deployType: DeployType
+    deployType: DeployType,
+    status: 'No Change'
 }
 
 export type DeployType = 'Manual' | 'CICD'

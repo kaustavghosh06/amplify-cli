@@ -25,7 +25,6 @@ export class ClientFactory {
     async getConfiguredSdk(envName?: string): Promise<any> {
         let awsSdk;
         if (envName) {
-            console.log('configured envName' + envName);
             awsSdk = await cfnProvider.getConfiguredAWSClient(this.context, 'hosting', 'delete', envName);
         } else {
             awsSdk = await cfnProvider.getConfiguredAWSClient(this.context);

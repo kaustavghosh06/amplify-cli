@@ -172,7 +172,8 @@ export class ConfigHelper {
     writeToAmplifyMeta(deployType: DeployType) {
         this.context.amplify.updateamplifyMetaAfterResourceAdd(CATAGORIE, AMPLIFY_CONSOLE, {
             service: AMPLIFY_CONSOLE,
-            deployType
+            deployType,
+            status: 'No Change'
         });
     }
 
