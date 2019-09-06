@@ -9,6 +9,7 @@ import * as fs from 'fs-extra';
 import chalk from 'chalk';
 
 const CONFIGURE_FIRST_MESSAGE = `Amplify Console app is not detected. Please run ${chalk.yellow('amplify hosting configure')} first`;
+const GIT_PUSH_NEW_APP_MESSAGE = `Continuous deployment is configured. Run ${chalk.green('git push')} from a connected branch to publish updates.`;
 
 export class CICDProcessor implements Processor {
     private context: AmplifyContext;
@@ -39,7 +40,7 @@ export class CICDProcessor implements Processor {
             console.log(CONFIGURE_FIRST_MESSAGE);
             return;
         }
-        let appId = await this.configHelper.loadAppIdByEnvFromTeamConfig(this.currentEnv);
+        let appId = this.configHelper.loadAppIdByEnvFromTeamConfig(this.currentEnv);
         await this.reuseApp(appId);
     }
 
@@ -67,6 +68,7 @@ export class CICDProcessor implements Processor {
         }
         this.pathHelper.ensureHostingFolder();
         this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
+        console.log(GIT_PUSH_NEW_APP_MESSAGE);
     }
 
     private async reuseApp(appId: string) {

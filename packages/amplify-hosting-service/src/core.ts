@@ -5,6 +5,8 @@ import { ConfigHelper } from './helpers/config-helper';
 import chalk from 'chalk';
 
 const UNEXPECTED_OPERATION_MESSAGE = 'undefined operation';
+const HELP_INFO_PLACE_HOLDER = `Manual deployment allows you to publish your web app to the Amplify Console without connecting a Git provider.\
+Continuous deployment allows you to publish changes on every code commit by connecting your GitHub, Bitbucket, GitLab, or AWS CodeCommit repositories.`;
 
 export class AmplifyConsole {
     private context: AmplifyContext;
@@ -24,18 +26,28 @@ export class AmplifyConsole {
     }
 
     async add(): Promise<void> {
-        const deployType: DeployType = await this.questionHelper.askDeployType();
-        switch (deployType) {
-            case 'Manual': {
-                await this.manualProcessor.add();
-                break;
-            }
-            case 'CICD': {
-                await this.cicdProcessor.add();
-                break;
-            }
-            default: {
-                chalk.red(UNEXPECTED_OPERATION_MESSAGE);
+        let doesSelectHelp = true;
+        while (doesSelectHelp) {
+            const deployType: DeployType = await this.questionHelper.askDeployType();
+            switch (deployType) {
+                case 'Manual': {
+                    doesSelectHelp = false;
+                    await this.manualProcessor.add();
+                    break;
+                }
+                case 'CICD': {
+                    doesSelectHelp = false;
+                    await this.cicdProcessor.add();
+                    break;
+                }
+                case 'Help': {
+                    console.log(HELP_INFO_PLACE_HOLDER);
+                    console.log('-------------------------------');
+                    break;
+                }
+                default: {
+                    chalk.red(UNEXPECTED_OPERATION_MESSAGE);
+                }
             }
         }
     };
@@ -115,3 +127,5 @@ export class AmplifyConsole {
         }
     }
 }
+
+

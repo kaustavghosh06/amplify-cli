@@ -10,6 +10,7 @@ import * as Utils from '../utils/index';
 const DEPLOY_TYPE_QUESTION = `Choose a ${chalk.red('type')}`;
 const DEPLOY_TYPE_QUESTION_MANUAL = 'Manual deployment';
 const DEPLOY_TYPE_QUESTION_CICD = 'Continuous deployment (Git-based deployments)';
+const LEARN_MORE = 'Learn more';
 const SELECT_CONFIG_QUESTION = "Configure settings for all frontends:";
 const SELECT_CONFIG_COMPLETION = "Apply configuration";
 
@@ -39,7 +40,6 @@ const SELECT_REMOVE_FRONTEND = "Remove frontend environment";
 const SELECT_ADD_FRONTEND = "Add new frontend environment";
 
 const PICKUP_FRONTEND_QUESTION = "Pick a frontend environment to deploy to:";
-const ADD_NEW_FRONTEND = 'create new';
 const ADD_NEW_FRONTEND_QUESTION = "Enter a frontend environment name (e.g. dev or prod):";
 
 const CICD_CONFIRM_QUESTION = `Continuous deployment is configued ${chalk.red('in')} the browser.\
@@ -48,7 +48,7 @@ const INPUT_APP_ARN_QUESTION = `Please enter your Amplify Console App Arn (App S
 const CHANGE_APP_ARN_QUESTION = `Please enter your new Amplify Console App Arn (App Settings > General):`;
 
 const VIEW_APP_QUESTION = `You have set up CI/CD with Amplify Console. \
-Run ${chalk.red('git push')} from a connected branch to publish updates. \
+Run ${chalk.green('git push')} from a connected branch to publish updates. \
 Open your Amplify Console app to view connected branches?`
 
 const VIEW_URL_QUESTION = 'Would you like to open the deployed website?';
@@ -82,13 +82,21 @@ export class QuestionHelper {
                     message: DEPLOY_TYPE_QUESTION,
                     choices: [
                         DEPLOY_TYPE_QUESTION_MANUAL,
-                        DEPLOY_TYPE_QUESTION_CICD
+                        DEPLOY_TYPE_QUESTION_CICD,
+                        LEARN_MORE
                     ],
                     default: DEPLOY_TYPE_QUESTION_MANUAL
                 }
             ]
         );
-        return anwser === DEPLOY_TYPE_QUESTION_MANUAL ? 'Manual' : 'CICD';
+        switch (anwser) {
+            case DEPLOY_TYPE_QUESTION_MANUAL:
+                return 'Manual';
+            case DEPLOY_TYPE_QUESTION_CICD:
+                return 'CICD';
+            case LEARN_MORE:
+                return 'Help';
+        }
     }
 
     async askAppConfigQuestion(template: CFNTemplate, appId: string): Promise<CFNParameters> {
@@ -111,10 +119,10 @@ export class QuestionHelper {
         let notComplete = true;
         while (notComplete) {
             let questionList = [
+                selectAddFrontend,
                 selectConfigAuth,
                 selectConfigRules,
                 selectDomainManagement,
-                selectAddFrontend,
                 selectConfigCompletion
             ]
             if (parameters.BranchesAfterEdit.length > 0) {

@@ -130,6 +130,6 @@ export interface AmplifyMetaConfig {
     status: 'No Change'
 }
 
-export type DeployType = 'Manual' | 'CICD'
+export type DeployType = 'Manual' | 'CICD' | 'Help'
 
 export type BranchOperation = 'Delete' | 'Create'
