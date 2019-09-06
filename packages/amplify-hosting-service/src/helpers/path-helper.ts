@@ -60,9 +60,12 @@ export class PathHelper {
         return path.join(this.getDotConfigPath(), Constants.LOCAL_AWS_INFO);
     }
 
-    ensureAmplifyConsoleFolder(): void {
+    ensureAmplifyFolder(): void {
         fs.ensureDirSync(this.getAmplifyPath());
         fs.ensureDirSync(this.getBackEndPath());
+    }
+
+    ensureHostingFolder(): void {
         fs.ensureDirSync(this.getHostingPath());
         fs.ensureDirSync(this.getAmplifyConsolePath());
     }

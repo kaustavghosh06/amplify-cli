@@ -1,5 +1,5 @@
 import { Processor } from './processor-interface';
-import { CommonHelper, QuestionHelper, AmplifyHelper, PathHelper, CleanHelper} from '../helpers/index'
+import { CommonHelper, QuestionHelper, AmplifyHelper, PathHelper, CleanHelper } from '../helpers/index'
 import { AmplifyContext, HostingConfig } from '../types';
 import open from 'open';
 import { ConfigHelper } from '../helpers/config-helper';
@@ -31,15 +31,16 @@ export class CICDProcessor implements Processor {
         this.cleanHelper = new CleanHelper(context);
         this.region = this.commonHelper.getRegion();
         this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
+        this.pathHelper.ensureAmplifyFolder();
     }
 
     async publish() {
-        let appId = await this.configHelper.initAppId();
-        if (appId) {
-            await this.reuseApp(appId);
-        } else {
+        if (!this.configHelper.isResourcePublished()) {
             console.log(CONFIGURE_FIRST_MESSAGE);
+            return;
         }
+        let appId = await this.configHelper.loadAppIdByEnvFromTeamConfig(this.currentEnv);
+        await this.reuseApp(appId);
     }
 
     async add() {
@@ -60,6 +61,11 @@ export class CICDProcessor implements Processor {
                 appId
             }
         };
+        const doesAppExist = await this.amplifyHelper.doesAppExist(appId);
+        if (!doesAppExist) {
+            throw new Error(`App with appId ${appId} is not found`);
+        }
+        this.pathHelper.ensureHostingFolder();
         this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
     }
 
@@ -77,28 +83,34 @@ export class CICDProcessor implements Processor {
     }
 
     async configure() {
-        let appId = await this.configHelper.initAppId();
-        if (!appId) {
-            await this.createNewApp();
-            return;
-        }
-        appId = await this.questionHelper.askChangeAppIdQuestion(appId);
-        await open(`https://${this.region}.console.aws.amazon.com/amplify/home?region=${this.region}#/${appId}`);
-        let hostConfig: HostingConfig = {
-            amplifyconsole: {
-                deployType: 'CICD',
-                appId
+        if (!this.configHelper.isResourcePublished()) {
+            let appId = await this.configHelper.initAppId();
+            if (!appId) {
+                await this.createNewApp();
+                return;
+            } else {
+                await this.reuseApp(appId);
             }
-        };
-        this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
+        } else {
+            let appId = await this.configHelper.loadAppIdByEnvFromTeamConfig(this.currentEnv)
+            appId = await this.questionHelper.askChangeAppIdQuestion(appId);
+            await open(`https://${this.region}.console.aws.amazon.com/amplify/home?region=${this.region}#/${appId}`);
+            let hostConfig: HostingConfig = {
+                amplifyconsole: {
+                    deployType: 'CICD',
+                    appId
+                }
+            };
+            this.configHelper.updateTeamConfig(this.currentEnv, hostConfig);
+        }
     }
 
     async status() {
-        let appId = await this.configHelper.initAppId();
-        if (!appId) {
+        if (!this.configHelper.isResourcePublished()) {
             console.log(CONFIGURE_FIRST_MESSAGE);
             return;
         }
+        let appId = await this.configHelper.loadAppIdByEnvFromTeamConfig(this.currentEnv)
         const branchMap = await this.amplifyHelper.generateBranchDomainMap(appId);
         let table = new Table({
             head: ['Frontend', 'Url']
@@ -117,7 +129,11 @@ export class CICDProcessor implements Processor {
     }
 
     async console() {
-        let appId = await this.configHelper.initAppId();
+        if (!this.configHelper.isResourcePublished()) {
+            console.log(CONFIGURE_FIRST_MESSAGE);
+            return;
+        }
+        let appId = await this.configHelper.loadAppIdByEnvFromTeamConfig(this.currentEnv)
         if (appId) {
             await open(`https://${this.region}.console.aws.amazon.com/amplify/home?region=${this.region}#/${appId}`);
         } else {

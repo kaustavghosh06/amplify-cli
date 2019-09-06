@@ -116,7 +116,7 @@ export class StackHelper {
             return;
         }
         const waitForStatus: WAIT_FOR_TYPE = "stackDeleteComplete";
-        await this.cfnClient.waitFor(waitForStatus, { StackName: stackName }).promise();
+        await cfnClient.waitFor(waitForStatus, { StackName: stackName }).promise();
         spinner.succeed(`Deleting Amplify Console stack for ${envName} environment completed.`);
     }
 

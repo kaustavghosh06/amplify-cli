@@ -12,6 +12,7 @@ export class ConfigHelper {
     private teamProviderFilePath: string;
     private amplifyMetaFilePath: string;
     private backEndConfigFilePath: string;
+    private currentEnv: string;
 
     constructor(context: AmplifyContext) {
         this.context = context;
@@ -22,6 +23,7 @@ export class ConfigHelper {
         this.teamProviderFilePath = this.pathHelper.getTeamProviderPath();
         this.amplifyMetaFilePath = this.pathHelper.getAmplifyMetaPath();
         this.backEndConfigFilePath = this.pathHelper.getBackendFilePath();
+        this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
     }
 
     private loadConfig(path: string) {
@@ -204,5 +206,19 @@ export class ConfigHelper {
             isValid = false;
         }
         return isValid
+    }
+
+    isResourcePublished(): boolean {
+        let isValid = true;
+        try {
+            const content = this.loadConfig(this.teamProviderFilePath)[this.currentEnv];
+            if (!content.categories.hosting.amplifyconsole.stackName && !content.categories.hosting.amplifyconsole.appId) {
+                isValid = false;
+            }
+        } catch (err) {
+            console.log(err);
+            isValid = false;
+        }
+        return isValid;
     }
 }

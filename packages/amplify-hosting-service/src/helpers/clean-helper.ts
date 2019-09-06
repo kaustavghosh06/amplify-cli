@@ -31,7 +31,7 @@ export class CleanHelper {
                 case 'CICD':
                     break;
                 case 'Manual':
-                    promiseList.push(this.stackHelper.deleteCFNStack(config.stackName));
+                    promiseList.push(this.stackHelper.deleteCFNStackByEnv(config.stackName, envName));
                     break;
             }
         });

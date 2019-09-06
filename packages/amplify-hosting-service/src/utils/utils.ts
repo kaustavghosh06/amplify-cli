@@ -36,7 +36,11 @@ function zipFile(sourceDir: string, destDir: string): Promise<string> {
 
 
 function getAppIdFromAppArn(appArn: string): string {
-    return appArn.split('/')[1];
+    const arnList: string[] = appArn.split('/');
+    if (arnList.length !== 2) {
+        throw new Error('Invalid App Arn');
+    }
+    return arnList[1];
 }
 
 

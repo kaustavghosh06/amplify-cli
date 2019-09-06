@@ -15,6 +15,7 @@ const RUN_CONFIGURE_MESSAGE = `Run ${chalk.green('amplify hosting configure')} t
 const RUN_PUBLISH_MESSAGE = `Please run ${chalk.yellow('amplify publish')} if created new frontend envs`;
 const URL_MESSAGE = 'Amplify URL: ';
 const URLS_MESSAGE = `Amplify Console Frontend URL(s):`;
+const RUN_PUBLISH_FIRST = `Please run ${chalk.yellow('amplify publish')} first!`;
 export class ManualProcessor implements Processor {
     private context: AmplifyContext;
     private templateHelper: TemplateHelper;
@@ -44,13 +45,14 @@ export class ManualProcessor implements Processor {
         this.region = this.commonHelper.getRegion();
         this.currentEnv = this.commonHelper.getLocalEnvInfo().envName;
         this.builder = new Builder();
-        this.pathHelper.ensureAmplifyConsoleFolder();
+        this.pathHelper.ensureAmplifyFolder();
     }
 
     private async initTemplate(stackName: string, doWriteMeta?: boolean): Promise<CFNTemplate> {
         let template: CFNTemplate = await this.templateHelper.generateTemplate(stackName);
         this.currentBranch = await this.questionHelper.askWhichBranchToUpdateQuestion(template);
         this.templateHelper.addBranchToTemplate(template, this.currentBranch);
+        this.pathHelper.ensureHostingFolder();
         this.templateHelper.writeAppTemplate(template);
         if (doWriteMeta) {
             this.configHelper.writeToAmplifyMeta('Manual');
@@ -129,7 +131,11 @@ export class ManualProcessor implements Processor {
     }
 
     async configure(): Promise<void> {
-        this.stackName = await this.configHelper.initStackName();
+        if (!this.configHelper.isResourcePublished()) {
+            console.log(RUN_PUBLISH_FIRST);
+            return;
+        }
+        this.stackName = this.configHelper.loadStackNameByEnvFromTeamConfig(this.currentEnv);
         let outputs = await this.stackHelper.getStackOutputs(this.stackName);
         const appId = outputs.AppId;
         let template = await this.templateHelper.generateTemplate(this.stackName);
@@ -144,7 +150,11 @@ export class ManualProcessor implements Processor {
     }
 
     async status(): Promise<void> {
-        this.stackName = await this.configHelper.initStackName();
+        if (!this.configHelper.isResourcePublished()) {
+            console.log(RUN_PUBLISH_FIRST);
+            return;
+        }
+        this.stackName = this.configHelper.loadStackNameByEnvFromTeamConfig(this.currentEnv);
         const appId = await this.getAppId(this.stackName);
         const branchMap = await this.amplifyHelper.generateBranchDomainMap(appId);
         let table = new Table({
@@ -164,13 +174,17 @@ export class ManualProcessor implements Processor {
     }
 
     async console() {
-        this.stackName = await this.configHelper.initStackName();
+        if (!this.configHelper.isResourcePublished()) {
+            console.log(RUN_PUBLISH_FIRST);
+            return;
+        }
+        this.stackName = this.configHelper.loadStackNameByEnvFromTeamConfig(this.currentEnv);
         const appId = await this.getAppId(this.stackName);
         await open(`https://${this.region}.console.aws.amazon.com/amplify/home?region=${this.region}#/${appId}`);
     }
 
     private async getAppId(stackName: string): Promise<string> {
-        let outputs = await this.stackHelper.getStackOutputs(this.stackName);
+        let outputs = await this.stackHelper.getStackOutputs(stackName);
         return outputs.AppId;
     }
 }
