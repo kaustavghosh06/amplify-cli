@@ -1,47 +1,47 @@
-const fs = require('fs-extra');
 const path = require('path');
 const sequential = require('promise-sequential');
 const constants = require('./constants');
 const supportedServices = require('./supported-services');
+const addAmplifyHosting = require('amplify-hosting-service').add;
+const publishAmplifyHosting = require('amplify-hosting-service').publish;
+const configureAmplifyHosting = require('amplify-hosting-service').configure;
+const consoleAmplifyHosting = require('amplify-hosting-service').console;
 
 const category = 'hosting';
 
 function getAvailableServices(context) {
   const availableServices = [];
   const projectConfig = context.amplify.getProjectConfig();
+
   Object.keys(supportedServices).forEach((service) => {
-    if (projectConfig.providers.includes(supportedServices[service].provider)) {
-      availableServices.push(service);
+    if (projectConfig.providers.includes(supportedServices[service].provider) ||
+        supportedServices[service].provider === 'NONE') {
+      availableServices.push({ name: supportedServices[service].description, value: service });
     }
   });
+
   return availableServices;
 }
 
 function getCategoryStatus(context) {
   const enabledServices = [];
-  const disabledServices = [];
+  let disabledServices = [];
 
   const availableServices = getAvailableServices(context);
   if (availableServices.length > 0) {
-    const projectBackendDirPath = context.amplify.pathManager.getBackendDirPath();
-    const categoryDirPath = path.join(projectBackendDirPath, constants.CategoryName);
-    if (fs.existsSync(categoryDirPath)) {
-      const serviceDirnames = fs.readdirSync(categoryDirPath);
-      for (let i = 0; i < serviceDirnames.length; i++) {
-        const serviceDirPath = path.join(categoryDirPath, serviceDirnames[i]);
-        const stat = fs.lstatSync(serviceDirPath);
-        if (stat.isDirectory()) {
-          if (availableServices.includes(serviceDirnames[i])) {
-            enabledServices.push(serviceDirnames[i]);
-          }
+    const amplifyMeta = context.amplify.getProjectMeta();
+    if (amplifyMeta.hosting) {
+      const servicesAdded = Object.keys(amplifyMeta.hosting);
+      availableServices.forEach((availableService) => {
+        if (servicesAdded.includes(availableService.value)) {
+          enabledServices.push(availableService);
+        } else {
+          disabledServices.push(availableService);
         }
-      }
+      });
+    } else {
+      disabledServices = availableServices;
     }
-    availableServices.forEach((service) => {
-      if (!enabledServices.includes(service)) {
-        disabledServices.push(service);
-      }
-    });
   }
 
   return {
@@ -52,6 +52,10 @@ function getCategoryStatus(context) {
 }
 
 function runServiceAction(context, service, action, args) {
+  if (service !== null && typeof service === 'object') {
+    service = service.value;
+  }
+
   context.exeInfo = context.amplify.getProjectDetails();
   if (context.exeInfo.amplifyMeta) {
     context.exeInfo.categoryMeta = context.exeInfo.amplifyMeta[constants.CategoryName];
@@ -59,8 +63,19 @@ function runServiceAction(context, service, action, args) {
       context.exeInfo.serviceMeta = context.exeInfo.categoryMeta[service];
     }
   }
-  const serviceModule = require(path.join(__dirname, `${service}/index.js`));
-  return serviceModule[action](context, args);
+
+  if (service === 'AmplifyConsole') {
+    switch (action) {
+      case 'enable': return addAmplifyHosting(context);
+      case 'publish': return publishAmplifyHosting(context);
+      case 'configure': return configureAmplifyHosting(context);
+      case 'console': return consoleAmplifyHosting(context);
+      default: context.print.error('Action not supported');
+    }
+  } else {
+    const serviceModule = require(path.join(__dirname, `${service}/index.js`));
+    return serviceModule[action](context, args);
+  }
 }
 
 async function migrate(context) {

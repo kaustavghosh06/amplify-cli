@@ -1,5 +1,4 @@
 const inquirer = require('inquirer');
-const sequential = require('promise-sequential');
 const categoryManager = require('./lib/category-manager');
 
 const category = 'hosting';
@@ -7,34 +6,28 @@ const category = 'hosting';
 async function add(context) {
   const {
     availableServices,
-    disabledServices,
+    enabledServices,
   } = categoryManager.getCategoryStatus(context);
 
   if (availableServices.length > 0) {
-    if (disabledServices.length > 1) {
-      const answers = await inquirer.prompt({
-        type: 'checkbox',
-        name: 'selectedServices',
-        message: 'Please select the service(s) to add.',
-        choices: disabledServices,
-        default: disabledServices[0],
-      });
-      const tasks = [];
-      answers.selectedServices.forEach((service) => {
-        tasks.push(() => categoryManager.runServiceAction(context, service, 'enable'));
-      });
-      return sequential(tasks);
-    } else if (disabledServices.length === 1) {
-      return categoryManager.runServiceAction(context, disabledServices[0], 'enable');
+    const answers = await inquirer.prompt({
+      type: 'list',
+      name: 'selectedService',
+      message: 'Please select the service to add.',
+      choices: availableServices,
+      default: availableServices[0],
+    });
+    const { selectedService } = answers;
+
+    if (enabledServices.findIndex(service => service.value === selectedService) !== -1) {
+      context.print.error(`Hosting is already enabled for ${selectedService}`);
+      return;
     }
-    const errorMessage = 'Hosting is already fully enabled.';
-    context.print.error(errorMessage);
-    throw new Error(errorMessage);
-  } else {
-    const errorMessage = 'Hosting is not available from enabled providers.';
-    context.print.error(errorMessage);
-    throw new Error(errorMessage);
+    return categoryManager.runServiceAction(context, selectedService, 'enable');
   }
+  const errorMessage = 'Hosting is not available from enabled providers.';
+  context.print.error(errorMessage);
+  throw new Error(errorMessage);
 }
 
 async function configure(context) {
@@ -45,18 +38,16 @@ async function configure(context) {
 
   if (availableServices.length > 0) {
     if (enabledServices.length > 1) {
-      const answers = await inquirer.prompt({
-        type: 'checkbox',
-        name: 'selectedServices',
-        message: 'Please select the service(s) to configure.',
+      const serviceSelection = await inquirer.prompt({
+        type: 'list',
+        name: 'selectedService',
+        message: 'Please select the service to configure.',
         choices: enabledServices,
         default: enabledServices[0],
       });
-      const tasks = [];
-      answers.selectedServices.forEach((service) => {
-        tasks.push(() => categoryManager.runServiceAction(context, service, 'configure'));
-      });
-      return sequential(tasks);
+
+      const service = serviceSelection.selectedService;
+      return categoryManager.runServiceAction(context, service, 'configure');
     } else if (enabledServices.length === 1) {
       return categoryManager.runServiceAction(context, enabledServices[0], 'configure');
     }
@@ -66,19 +57,29 @@ async function configure(context) {
   }
 }
 
-function publish(context, service, args) {
+async function publish(context, args) {
   const {
     enabledServices,
   } = categoryManager.getCategoryStatus(context);
 
   if (enabledServices.length > 0) {
-    if (enabledServices.includes(service)) {
-      return categoryManager.runServiceAction(context, service, 'publish', args);
+    let service;
+    if (enabledServices.length === 1) {
+      [service] = enabledServices;
+    } else {
+      const serviceQuestion = await inquirer.prompt({
+        type: 'list',
+        name: 'selectedService',
+        message: 'Please select the service to publish to.',
+        choices: enabledServices,
+        default: enabledServices[0],
+      });
+
+      service = serviceQuestion.selectedService;
     }
-    throw new Error(`Hosting service ${service} is NOT enabled.`);
-  } else {
-    throw new Error('No hosting service is enabled.');
+    return categoryManager.runServiceAction(context, service, 'publish', args);
   }
+  throw new Error('No hosting service is enabled.');
 }
 
 async function console(context) {

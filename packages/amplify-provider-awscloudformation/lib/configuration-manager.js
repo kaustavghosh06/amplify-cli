@@ -488,8 +488,11 @@ function removeProjectConfig(context) {
   }
 }
 
-async function loadConfiguration(context) {
-  const { envName } = context.amplify.getEnvInfo();
+async function loadConfiguration(context, customEnvName) {
+  let { envName } = context.amplify.getEnvInfo();
+  if (customEnvName) {
+    envName = customEnvName;
+  }
   const config = await loadConfigurationForEnv(context, envName);
   return config;
 }
