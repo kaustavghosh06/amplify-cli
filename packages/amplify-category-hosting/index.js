@@ -6,7 +6,7 @@ const category = 'hosting';
 async function add(context) {
   const {
     availableServices,
-    disabledServices,
+    enabledServices,
   } = categoryManager.getCategoryStatus(context);
 
   if (availableServices.length > 0) {
@@ -18,7 +18,8 @@ async function add(context) {
       default: availableServices[0],
     });
     const { selectedService } = answers;
-    if (disabledServices.indexOf(selectedService) === -1) {
+
+    if (enabledServices.findIndex(service => service.value === selectedService) !== -1) {
       context.print.error(`Hosting is already enabled for ${selectedService}`);
       return;
     }

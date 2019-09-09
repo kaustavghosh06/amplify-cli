@@ -1,4 +1,3 @@
-const fs = require('fs-extra');
 const path = require('path');
 const sequential = require('promise-sequential');
 const constants = require('./constants');
@@ -17,7 +16,7 @@ function getAvailableServices(context) {
   Object.keys(supportedServices).forEach((service) => {
     if (projectConfig.providers.includes(supportedServices[service].provider) ||
         supportedServices[service].provider === 'NONE') {
-      availableServices.push(service);
+      availableServices.push({ name: supportedServices[service].description, value: service });
     }
   });
 
@@ -26,29 +25,23 @@ function getAvailableServices(context) {
 
 function getCategoryStatus(context) {
   const enabledServices = [];
-  const disabledServices = [];
+  let disabledServices = [];
 
   const availableServices = getAvailableServices(context);
   if (availableServices.length > 0) {
-    const projectBackendDirPath = context.amplify.pathManager.getBackendDirPath();
-    const categoryDirPath = path.join(projectBackendDirPath, constants.CategoryName);
-    if (fs.existsSync(categoryDirPath)) {
-      const serviceDirnames = fs.readdirSync(categoryDirPath);
-      for (let i = 0; i < serviceDirnames.length; i++) {
-        const serviceDirPath = path.join(categoryDirPath, serviceDirnames[i]);
-        const stat = fs.lstatSync(serviceDirPath);
-        if (stat.isDirectory()) {
-          if (availableServices.includes(serviceDirnames[i])) {
-            enabledServices.push(serviceDirnames[i]);
-          }
+    const amplifyMeta = context.amplify.getProjectMeta();
+    if (amplifyMeta.hosting) {
+      const servicesAdded = Object.keys(amplifyMeta.hosting);
+      availableServices.forEach((availableService) => {
+        if (servicesAdded.includes(availableService.value)) {
+          enabledServices.push(availableService);
+        } else {
+          disabledServices.push(availableService);
         }
-      }
+      });
+    } else {
+      disabledServices = availableServices;
     }
-    availableServices.forEach((service) => {
-      if (!enabledServices.includes(service)) {
-        disabledServices.push(service);
-      }
-    });
   }
 
   return {
@@ -59,6 +52,10 @@ function getCategoryStatus(context) {
 }
 
 function runServiceAction(context, service, action, args) {
+  if (service !== null && typeof service === 'object') {
+    service = service.value;
+  }
+
   context.exeInfo = context.amplify.getProjectDetails();
   if (context.exeInfo.amplifyMeta) {
     context.exeInfo.categoryMeta = context.exeInfo.amplifyMeta[constants.CategoryName];
