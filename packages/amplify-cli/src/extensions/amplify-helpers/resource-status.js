@@ -122,7 +122,7 @@ function getResourcesToBeCreated(
       if ((!amplifyMeta[categoryName][resource].lastPushTimeStamp ||
           !currentamplifyMeta[categoryName] ||
           !currentamplifyMeta[categoryName][resource]) &&
-          categoryName !== 'providers') {
+          categoryName !== 'providers' && !amplifyMeta[categoryName][resource].status) {
         amplifyMeta[categoryName][resource].resourceName = resource;
         amplifyMeta[categoryName][resource].category = categoryName;
         resources.push(amplifyMeta[categoryName][resource]);
@@ -174,7 +174,8 @@ function getResourcesToBeDeleted(
   Object.keys((currentamplifyMeta)).forEach((categoryName) => {
     const categoryItem = currentamplifyMeta[categoryName];
     Object.keys((categoryItem)).forEach((resource) => {
-      if (!amplifyMeta[categoryName] || !amplifyMeta[categoryName][resource]) {
+      if ((!amplifyMeta[categoryName] || !amplifyMeta[categoryName][resource])
+          && (!currentamplifyMeta[categoryName][resource].status)) {
         currentamplifyMeta[categoryName][resource].resourceName = resource;
         currentamplifyMeta[categoryName][resource].category = categoryName;
 
@@ -214,7 +215,8 @@ async function getResourcesToBeUpdated(
     await asyncForEach(Object.keys((categoryItem)), async (resource) => {
       if (currentamplifyMeta[categoryName]) {
         if (currentamplifyMeta[categoryName][resource] !== undefined &&
-            amplifyMeta[categoryName][resource] !== undefined) {
+            amplifyMeta[categoryName][resource] !== undefined
+            && !currentamplifyMeta[categoryName][resource].status) {
           const backendModified = await isBackendDirModifiedSinceLastPush(
             resource,
             categoryName,

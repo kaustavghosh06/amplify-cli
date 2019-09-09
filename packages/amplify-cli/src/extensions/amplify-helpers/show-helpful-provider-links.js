@@ -14,7 +14,9 @@ async function showHelpfulProviderLinks(context) {
 
   // Show Amplify Console URLs
   try {
-    await showAmplifyHostingLinks(context);
+    if (allResources.findIndex(resource => resource.category === 'hosting' && resource.service === 'AmplifyConsole') !== -1) {
+      await showAmplifyHostingLinks(context);
+    }
   } catch (e) {
     console.log(e.stack);
   }
