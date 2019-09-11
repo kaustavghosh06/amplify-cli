@@ -1,4 +1,5 @@
 jest.mock('../lib/category-manager');
+jest.mock('amplify-hosting-service');
 
 const inquirer = require('inquirer');
 const mockirer = require('mockirer');

@@ -1,5 +1,6 @@
 jest.mock('promise-sequential');
 jest.mock('fs-extra'); 
+jest.mock('amplify-hosting-service');
 jest.mock('../../lib/S3AndCloudFront/index'); 
 const s3AndCFIndexModule = require('../../lib/S3AndCloudFront/index'); 
 

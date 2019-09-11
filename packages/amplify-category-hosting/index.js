@@ -57,27 +57,9 @@ async function configure(context) {
   }
 }
 
-async function publish(context, args) {
-  const {
-    enabledServices,
-  } = categoryManager.getCategoryStatus(context);
-
-  if (enabledServices.length > 0) {
-    let service;
-    if (enabledServices.length === 1) {
-      [service] = enabledServices;
-    } else {
-      const serviceQuestion = await inquirer.prompt({
-        type: 'list',
-        name: 'selectedService',
-        message: 'Please select the service to publish to.',
-        choices: enabledServices,
-        default: enabledServices[0],
-      });
-
-      service = serviceQuestion.selectedService;
-    }
-    return categoryManager.runServiceAction(context, service, 'publish', args);
+async function publish(context, selectedHostingService, args) {
+  if (selectedHostingService) {
+    return categoryManager.runServiceAction(context, selectedHostingService, 'publish', args);
   }
   throw new Error('No hosting service is enabled.');
 }
@@ -126,6 +108,15 @@ async function getPermissionPolicies(context, resourceOpsMapping) {
   return { permissionPolicies, resourceAttributes };
 }
 
+async function getEnabledServices(context) {
+  const {
+    enabledServices,
+  } = categoryManager.getCategoryStatus(context);
+
+  return enabledServices;
+}
+
+
 module.exports = {
   add,
   configure,
@@ -133,4 +124,5 @@ module.exports = {
   console,
   migrate,
   getPermissionPolicies,
+  getEnabledServices,
 };
