@@ -7,7 +7,7 @@ import { success } from 'log-symbols';
 import { CommonHelper } from './common-helper';
 import * as Utils from '../utils/index';
 
-const DEPLOY_TYPE_QUESTION = `Choose a ${chalk.red('type')}`;
+const DEPLOY_TYPE_QUESTION = `Choose a deployment type`;
 const DEPLOY_TYPE_QUESTION_MANUAL = 'Manual deployment';
 const DEPLOY_TYPE_QUESTION_CICD = 'Continuous deployment (Git-based deployments)';
 const LEARN_MORE = 'Learn more';
@@ -20,18 +20,18 @@ const SELECT_REMOVE_FRONTEND_QUESTION = "Select frontends to remove"
 const BASIC_AUTH_USERNAME_QUESTION = "Enter username";
 const BASIC_AUTH_PASSWORD_QUESTION = "Enter password";
 const CONFIRM_QUESTION = "Confirm?";
-const BASIC_AUTH_DISABLE_QUESTION = "Disable basic auth";
-const BASIC_AUTH_EDIT_QUESTION = "Edit basic auth";
+const BASIC_AUTH_DISABLE_QUESTION = "Disable access control";
+const BASIC_AUTH_EDIT_QUESTION = "Edit access control";
 
-const CREATE_NEW_CUSTOM_RULE_QUESTIION = "Create new custom rule";
-const DELETE_CUSTOM_RULE_QUESTION = "Delete custom rule";
-const EDIT_CUSTOM_RULE_QUESTION = "Edit custom rule";
-const EDIT_SOURCE_QUESTION = "Please input source url";
-const EDIT_TARGET_QUESTION = "Please input target url";
-const EDIT_STATUS_CODE = "Please input status code";
-const EDIT_COUNTRY_CODE = "Please input contry code(enter to skip)";
-const SELECT_DELETE_CUSTOM_RULE_QUESTION = "Please select custom rules to delete";
-const SELECT_EIDT_CUSTOM_RULE_QUESTION = "Please select custom rules to edit";
+const CREATE_NEW_CUSTOM_RULE_QUESTIION = "Create new redirect";
+const DELETE_CUSTOM_RULE_QUESTION = "Delete redirect";
+const EDIT_CUSTOM_RULE_QUESTION = "Edit redirect";
+const EDIT_SOURCE_QUESTION = "Please input source URL";
+const EDIT_TARGET_QUESTION = "Please input target URL";
+const EDIT_STATUS_CODE = "Please input status code (e.g. 301, 302, 404)";
+const EDIT_COUNTRY_CODE = "Please input contry code (enter to skip)";
+const SELECT_DELETE_CUSTOM_RULE_QUESTION = "Please select redirect rules to delete";
+const SELECT_EIDT_CUSTOM_RULE_QUESTION = "Please select redirect rules to edit";
 
 const SELECT_CONFIG_AUTH = "Access control";
 const SELECT_CONFIG_RULES = "Redirects and rewrites";
@@ -39,11 +39,11 @@ const SELECT_DOMAIN_MANAGEMENT = "Domain management";
 const SELECT_REMOVE_FRONTEND = "Remove frontend environment";
 const SELECT_ADD_FRONTEND = "Add new frontend environment";
 
-const PICKUP_FRONTEND_QUESTION = "Pick a frontend environment to deploy to:";
+const PICKUP_FRONTEND_QUESTION = "Pick a target frontend environment:";
 const ADD_NEW_FRONTEND_QUESTION = "Enter a frontend environment name (e.g. dev or prod):";
 
-const CICD_CONFIRM_QUESTION = `Continuous deployment is configued ${chalk.red('in')} the browser.\
-Once you complete the wizard please ${chalk.red('return')} here and enter your app Arn. Continue:`;
+const CICD_CONFIRM_QUESTION = `Continuous deployment is configued in the browser.\n
+Once you complete the wizard please return here. Continue:`;
 const INPUT_APP_ARN_QUESTION = `Please enter your Amplify Console App Arn (App Settings > General):`;
 const CHANGE_APP_ARN_QUESTION = `Please enter your new Amplify Console App Arn (App Settings > General):`;
 
@@ -51,11 +51,11 @@ const VIEW_APP_QUESTION = `You have set up CI/CD with Amplify Console. \
 Run ${chalk.green('git push')} from a connected branch to publish updates. \
 Open your Amplify Console app to view connected branches?`
 
-const VIEW_URL_QUESTION = 'Would you like to open the deployed website?';
+const VIEW_URL_QUESTION = 'Would you like to open your deployed site?';
 
-const INPUT_BLANK_VALIDATION = 'Input can not be blank';
-const STATUS_CODE_VALIDATION = 'Status code can only be number';
-const FRONTEND_NAME_VALIDATION = 'The frontend environment already exists. Please input a new name';
+const INPUT_BLANK_VALIDATION = 'Input cannot be blank';
+const STATUS_CODE_VALIDATION = 'Status code can only be a number';
+const FRONTEND_NAME_VALIDATION = 'The frontend environment name already exists. Please input a new name';
 
 interface QuestionType {
     configType?: BasicAuthConfig | CustomRule[] | string[],
@@ -81,8 +81,8 @@ export class QuestionHelper {
                     name: "anwser",
                     message: DEPLOY_TYPE_QUESTION,
                     choices: [
-                        DEPLOY_TYPE_QUESTION_MANUAL,
                         DEPLOY_TYPE_QUESTION_CICD,
+                        DEPLOY_TYPE_QUESTION_MANUAL,
                         LEARN_MORE
                     ],
                     default: DEPLOY_TYPE_QUESTION_MANUAL

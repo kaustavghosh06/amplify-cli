@@ -5,7 +5,7 @@ import { ConfigHelper } from './helpers/config-helper';
 import chalk from 'chalk';
 
 const UNEXPECTED_OPERATION_MESSAGE = 'undefined operation';
-const HELP_INFO_PLACE_HOLDER = `Manual deployment allows you to publish your web app to the Amplify Console without connecting a Git provider.\
+const HELP_INFO_PLACE_HOLDER = `Manual deployment allows you to publish your web app to the Amplify Console without connecting a Git provider.\n
 Continuous deployment allows you to publish changes on every code commit by connecting your GitHub, Bitbucket, GitLab, or AWS CodeCommit repositories.`;
 
 export class AmplifyConsole {
