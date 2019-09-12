@@ -105,10 +105,10 @@ export class StackHelper {
         spinner.start(`Deleting Amplify Console stack for ${envName} environment`);
         await cfnClient.deleteStack(params).promise().catch(err => {
             if (err.code === VALIDATION_ERROR) {
-                spinner.succeed(`${envName} environment deletion complete.`);
+                spinner.succeed(`Frontend ${envName} environment deletion complete.`);
                 doDelete = false;
             } else {
-                spinner.fail(`Deleting Amplify Console stack for ${envName} environment failed.`);
+                spinner.fail(`Deleting frontend ${envName} environment failed.`);
                 throw err;
             }
         });

@@ -210,16 +210,18 @@ export class ConfigHelper {
     }
 
     isResourcePublished(): boolean {
-        let isValid = true;
+        let isPublished = false;
         try {
             const content = this.loadConfig(this.teamProviderFilePath)[this.currentEnv];
-            if (!content.categories.hosting.amplifyconsole.stackName && !content.categories.hosting.amplifyconsole.appId) {
-                isValid = false;
+            if (content.categories.hosting 
+                && content.categories.hosting.amplifyconsole 
+                && content.categories.hosting.amplifyconsole.stackName 
+                && content.categories.hosting.amplifyconsole.appId) {
+                isPublished = true;
             }
         } catch (err) {
             console.log(err);
-            isValid = false;
         }
-        return isValid;
+        return isPublished;
     }
 }
