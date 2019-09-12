@@ -15,9 +15,9 @@ const VALIDATION_ERROR = 'ValidationError';
 const UNEXPECTED_OPERATION = 'Unexpected operation';
 const CFN_DOES_NOT_EXIST_KEY_WORD = 'does not exist';
 
-const START_DELETING_MESSAGE = `Deleting Amplify Console stack`;
-const DELETING_FAILED_MESSAGE = `Deleting Amplify Console stack failed.`;
-const DELETING_SUCCEED_MESSAGE = `Deleting Amplify Console stack completed.`;
+const START_DELETING_MESSAGE = `Deleting Amplify Hosting`;
+const DELETING_FAILED_MESSAGE = `Deleting Amplify Hosting failed.`;
+const DELETING_SUCCEED_MESSAGE = `Deleting Amplify Hosting completed.`;
 
 export class StackHelper {
     private context: AmplifyContext;
@@ -105,7 +105,7 @@ export class StackHelper {
         spinner.start(`Deleting Amplify Console stack for ${envName} environment`);
         await cfnClient.deleteStack(params).promise().catch(err => {
             if (err.code === VALIDATION_ERROR) {
-                spinner.succeed(`Deleting Amplify Console stack for ${envName} environment completed.`);
+                spinner.succeed(`${envName} environment deletion complete.`);
                 doDelete = false;
             } else {
                 spinner.fail(`Deleting Amplify Console stack for ${envName} environment failed.`);
