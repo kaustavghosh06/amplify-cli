@@ -231,6 +231,7 @@ async function updateUserPoolGroups(context) {
   }
 
   if (existingGroups) {
+    // eslint-disable-next-line
     const deletionChoices = existingGroups.map((e) => {
       return { name: e.groupName, value: e.groupName };
     });
