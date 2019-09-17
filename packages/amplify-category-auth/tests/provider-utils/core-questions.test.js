@@ -309,7 +309,6 @@ describe('When generating auth questions...', () => {
       expect(res.choices[3].value).toEqual('callbacks');
       expect(res.choices[4].value).toEqual('providers');
       expect(res.choices[5].value).toEqual('updateUserPoolGroups');
-
     });
   });
 });
