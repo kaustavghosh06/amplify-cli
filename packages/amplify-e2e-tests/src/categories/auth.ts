@@ -149,6 +149,9 @@ export function addAuthWithCustomTrigger(
       .send('\r')
       .wait('How do you want users to be able to sign in?')
       .send('\r')
+      .wait('Do you want to add User Pool Groups')
+      .send('n')
+      .send('\r')
       .wait('Multifactor authentication (MFA) user login options:')
       .send('\r')
       .wait('Email based user registration/forgot password:')
@@ -414,6 +417,9 @@ export function addAuthWithMaxOptions(
       .send('\r')
       .wait('How do you want users to be able to sign in')
       .send('\r')
+      .wait('Do you want to add User Pool Groups')
+      .send('j')
+      .send('\r')
       .wait('Multifactor authentication (MFA) user login options')
       .send('j')
       .send('\r')
@@ -542,6 +548,80 @@ export function addAuthWithMaxOptions(
       .send('\r')
       .wait('Do you want to edit your custom function now')
       .send('n')
+      .send('\r')
+      .sendEof()
+      .run(function(err: Error) {
+        if (!err) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      })
+  })
+}
+
+export function updateAuthWithUserGroups(
+  cwd: string,
+  settings: any,
+  verbose: boolean = !isCI(),
+) {
+  return new Promise((resolve, reject) => {
+    nexpect
+      .spawn(getCLIPath(), ['update', 'auth'], { cwd, stripColors: true, verbose })
+      .wait('What do you want to do')
+      .send('j')
+      .send('j')
+      .send('\r')
+      .wait('Provide a name for your user pool group')
+      .send('group1')
+      .send('\r')
+      .wait('Do you want to add another User Pool Group')
+      .send('y')
+      .send('\r')
+      .wait('Provide a name for your user pool group')
+      .send('group2')
+      .send('\r')
+      .wait('Do you want to add another User Pool Group')
+      .send('n')
+      .send('\r')
+      .wait('Sort the user pool groups in order of preference')
+      .send('\r')
+      .sendEof()
+      .run(function(err: Error) {
+        if (!err) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      })
+  })
+}
+
+export function updateUserGroups(
+  cwd: string,
+  settings: any,
+  verbose: boolean = !isCI(),
+) {
+  return new Promise((resolve, reject) => {
+    nexpect
+      .spawn(getCLIPath(), ['update', 'auth'], { cwd, stripColors: true, verbose })
+      .wait('What do you want to do')
+      .send('j')
+      .send('j')
+      .send('\r')
+      .wait('Select any user pool groups you want to delete')
+      .send(' ')
+      .send('\r')
+      .wait('Do you want to add another User Pool Group')
+      .send('y')
+      .send('\r')
+      .wait('Provide a name for your user pool group')
+      .send('group3')
+      .send('\r')
+      .wait('Do you want to add another User Pool Group')
+      .send('n')
+      .send('\r')
+      .wait('Sort the user pool groups in order of preference')
       .send('\r')
       .sendEof()
       .run(function(err: Error) {

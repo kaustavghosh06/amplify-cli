@@ -91,9 +91,7 @@
                 "RoleName": {
                     "Fn::If": [
                         "ShouldNotCreateEnvResources",
-                        {
-                           <%= props.resourceName %>
-                        }, 
+                        "<%= props.cognitoResourceName %>-GroupExecutionRole",
                         {
 
                             "Fn::Join": [
@@ -101,7 +99,7 @@
                                 [
                                   
                                   "<%= props.cognitoResourceName %>",
-                                  "-ExecutionRole-",
+                                  "-GroupExecutionRole-",
                                   {
                                     "Ref": "env"
                                   }
