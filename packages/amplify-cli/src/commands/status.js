@@ -9,7 +9,7 @@ module.exports = {
 };
 
 async function showAmplifyConsoleHostingStatus(context) {
-  const pluginInfo = context.amplify.getConsoleHostingPluginInfo(context);
+  const pluginInfo = context.amplify.getCategoryPluginInfo(context, 'hosting', 'amplifyhosting');
   if (pluginInfo && pluginInfo.packageLocation) {
     const { status } = require(pluginInfo.packageLocation);
     if (status) {

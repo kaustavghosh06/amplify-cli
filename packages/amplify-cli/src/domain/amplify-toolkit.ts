@@ -12,7 +12,6 @@ export class AmplifyToolkit {
   private _getAllEnvs: any;
   private _getPlugin: any;
   private _getCategoryPluginInfo: any;
-  private _getConsoleHostingPluginInfo: any;
   private _getAllCategoryPluginInfo: any;
   private _getFrontendPlugins: any;
   private _getEnvDetails: any;
@@ -119,12 +118,6 @@ export class AmplifyToolkit {
     this._getCategoryPluginInfo =
       this._getCategoryPluginInfo || require(path.join(this._amplifyHelpersDirPath, 'get-category-pluginInfo')).getCategoryPluginInfo;
     return this._getCategoryPluginInfo;
-  }
-  get getConsoleHostingPluginInfo(): any {
-    this._getConsoleHostingPluginInfo =
-      this._getConsoleHostingPluginInfo ||
-      require(path.join(this._amplifyHelpersDirPath, 'get-console-hosting-pluginInfo')).getConsoleHostingPluginInfo;
-    return this._getConsoleHostingPluginInfo;
   }
   get getAllCategoryPluginInfo(): any {
     this._getAllCategoryPluginInfo =
