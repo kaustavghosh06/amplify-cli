@@ -1,10 +1,13 @@
 import * as nexpect from 'nexpect';
-import { getCLIPath, isCI } from '../utils';
+import { getCLIPath, isCI, getProjectMeta } from '../utils';
 
 export function addHosting(cwd: string, verbose: boolean = !isCI()) {
   return new Promise((resolve, reject) => {
     nexpect
       .spawn(getCLIPath(), ['add', 'hosting'], { cwd, stripColors: true, verbose })
+      .wait('Select the plugin module to execute')
+      .sendline('j')
+      .sendline('\r')
       .wait('Select the environment setup:')
       .sendline('\r')
       .wait('hosting bucket name')
