@@ -25,6 +25,34 @@ const getUserPool = async (userpoolId, region) => {
   return res;
 };
 
+const listUserPoolGroups = async (userpoolId, region) => {
+  AWS.config.update({ region });
+  const CognitoIdentityServiceProvider = AWS.CognitoIdentityServiceProvider;
+  let res;
+  try {
+    res = await new CognitoIdentityServiceProvider()
+      .listGroups({ UserPoolId: userpoolId })
+      .promise();
+  } catch (e) {
+    console.log(e);
+  }
+  return res;
+};
+
+const getIdentityPoolRoles = async (identityPoolId, region) => {
+  AWS.config.update({ region });
+  const CognitoIdentity = AWS.CognitoIdentity;
+  let res;
+  try {
+    res = await new CognitoIdentity()
+      .getIdentityPoolRoles({ IdentityPoolId: identityPoolId })
+      .promise();
+  } catch (e) {
+    console.log(e);
+  }
+  return res;
+};
+
 const getLambdaFunction = async (functionName, region) => {
   AWS.config.update({ region });
   const lambda = new AWS.Lambda();
@@ -90,4 +118,5 @@ export {
   getDDBTable, checkIfBucketExists, getUserPool,
   getUserPoolClients, getBot, getLambdaFunction,
   getFunction, getTable, deleteTable, getCollection,
+  getIdentityPoolRoles, listUserPoolGroups
 };

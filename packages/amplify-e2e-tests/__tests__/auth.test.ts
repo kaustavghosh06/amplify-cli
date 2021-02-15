@@ -14,9 +14,20 @@ import {
   addAuthWithCustomTrigger,
   updateAuthWithoutCustomTrigger,
   addAuthViaAPIWithTrigger,
-  addAuthWithMaxOptions
+  addAuthWithMaxOptions,
+  updateAuthWithUserGroups,
+  updateUserGroups
 } from '../src/categories/auth';
-import { createNewProjectDir, deleteProjectDir, getProjectMeta, getUserPool, getUserPoolClients, getLambdaFunction } from '../src/utils';
+import {
+  createNewProjectDir,
+  deleteProjectDir,
+  getProjectMeta,
+  getUserPool,
+  getUserPoolClients,
+  getLambdaFunction,
+  getIdentityPoolRoles,
+  listUserPoolGroups
+} from '../src/utils';
 
 const defaultsSettings = {
   name: 'authTest',
@@ -152,7 +163,7 @@ describe('amplify updating auth...', () => {
     deleteProjectDir(projRoot);
   });
 
-  it('...should init a project and add auth with a custom trigger, and then update to remove the custom js while leaving the other js', async () => {
+  it('should init a project and add auth with a custom trigger, and then update to remove the custom js while leaving the other js', async () => {
     await initProjectWithProfile(projRoot, defaultsSettings);
     await addAuthWithCustomTrigger(projRoot, {});
     await amplifyPushAuth(projRoot);
@@ -177,4 +188,48 @@ describe('amplify updating auth...', () => {
     await expect(updatedDirContents.includes('email-filter-blacklist.js')).toBeTruthy();
     await expect(updatedFunction.Configuration.Environment.Variables.MODULES).toEqual('email-filter-blacklist');
   });
+  it('...should init a project and add auth with defaults, update to add cognito user pool groups, and update again to edit the groups', async () => {
+    await initProjectWithProfile(projRoot, defaultsSettings);
+    await addAuthWithDefault(projRoot, {});
+    await amplifyPushAuth(projRoot);
+
+    await updateAuthWithUserGroups(projRoot, {});
+    await amplifyPushAuth(projRoot);
+
+    const meta = getProjectMeta(projRoot);
+    const identityPoolId = Object.keys(meta.auth).map(key => meta.auth[key])[0].output.IdentityPoolId;
+    const userPoolId = Object.keys(meta.auth).map(key => meta.auth[key])[0].output.UserPoolId;
+
+    let identityPoolRoles = await getIdentityPoolRoles(identityPoolId, meta.providers.awscloudformation.Region);
+    let poolGroups = await listUserPoolGroups(userPoolId, meta.providers.awscloudformation.Region);
+    let groups = poolGroups.Groups;
+    // workaround for Object.values in TS
+    let roleMapValues = Object.keys(identityPoolRoles.RoleMappings).map(key => identityPoolRoles.RoleMappings[key]);
+    expect(identityPoolRoles).toBeDefined();
+    expect(roleMapValues[0].Type).toEqual('Token');
+    expect(roleMapValues[1].Type).toEqual('Token');
+    expect(roleMapValues[0].AmbiguousRoleResolution).toEqual('AuthenticatedRole');
+    expect(roleMapValues[1].AmbiguousRoleResolution).toEqual('AuthenticatedRole');
+    expect(groups.length).toEqual(2);
+    expect(groups.find(x => x.GroupName === 'group1')).toBeDefined();
+    expect(groups.find(x => x.GroupName === 'group2')).toBeDefined();
+
+    await updateUserGroups(projRoot, {});
+    await amplifyPushAuth(projRoot);
+
+    identityPoolRoles = await getIdentityPoolRoles(identityPoolId, meta.providers.awscloudformation.Region);
+    poolGroups = await listUserPoolGroups(userPoolId, meta.providers.awscloudformation.Region);
+    groups = poolGroups.Groups;
+    roleMapValues = Object.keys(identityPoolRoles.RoleMappings).map(key => identityPoolRoles.RoleMappings[key]);
+    expect(identityPoolRoles).toBeDefined();
+    expect(roleMapValues[0].Type).toEqual('Token');
+    expect(roleMapValues[1].Type).toEqual('Token');
+    expect(roleMapValues[0].AmbiguousRoleResolution).toEqual('AuthenticatedRole');
+    expect(roleMapValues[1].AmbiguousRoleResolution).toEqual('AuthenticatedRole');
+    expect(groups.length).toEqual(2);
+    expect(groups.find(x => x.GroupName === 'group2')).toBeDefined();
+    expect(groups.find(x => x.GroupName === 'group3')).toBeDefined();
+  });
+
+
 });

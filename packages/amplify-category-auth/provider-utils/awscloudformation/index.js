@@ -212,6 +212,32 @@ async function createUserPoolGroups(context, resourceName, userPoolGroupList) {
       'user-pool-group-precedence.json',
     );
 
+    const userPoolGroupParams = path.join(
+      context.amplify.pathManager.getBackendDirPath(),
+      'auth',
+      'userPoolGroups',
+      'parameters.json',
+    );
+
+    /* eslint-disable */
+    const groupParams = {
+      AuthRoleArn: {
+        'Fn::GetAtt': [
+          'AuthRole',
+          'Arn'
+        ]
+      },
+      UnauthRoleArn: {
+        'Fn::GetAtt': [
+          'UnauthRole',
+          'Arn'
+        ]
+      },
+
+    }
+    /* eslint-enable */
+
+    fs.outputFileSync(userPoolGroupParams, JSON.stringify(groupParams, null, 4));
     fs.outputFileSync(userPoolGroupFile, JSON.stringify(userPoolGroupPrecedenceList, null, 4));
 
     context.amplify.updateamplifyMetaAfterResourceAdd('auth', 'userPoolGroups', {
@@ -223,6 +249,49 @@ async function createUserPoolGroups(context, resourceName, userPoolGroupList) {
           resourceName,
           attributes: [
             'UserPoolId',
+            'AppClientIDWeb',
+            'AppClientID',
+            'IdentityPoolId',
+          ],
+        },
+      ],
+    });
+  }
+}
+
+// may be able to consolidate this into just createUserPoolGroups
+async function updateUserPoolGroups(context, resourceName, userPoolGroupList) {
+  if (userPoolGroupList && userPoolGroupList.length > 0) {
+    const userPoolGroupPrecedenceList = [];
+
+    for (let i = 0; i < userPoolGroupList.length; i += 1) {
+      userPoolGroupPrecedenceList.push({
+        groupName: userPoolGroupList[i],
+        precedence: i + 1,
+      });
+    }
+
+    const userPoolGroupFile = path.join(
+      context.amplify.pathManager.getBackendDirPath(),
+      'auth',
+      'userPoolGroups',
+      'user-pool-group-precedence.json',
+    );
+
+    fs.outputFileSync(userPoolGroupFile, JSON.stringify(userPoolGroupPrecedenceList, null, 4));
+
+    context.amplify.updateamplifyMetaAfterResourceUpdate('auth', 'userPoolGroups', {
+      service: 'Cognito-UserPool-Groups',
+      providerPlugin: 'awscloudformation',
+      dependsOn: [
+        {
+          category: 'auth',
+          resourceName,
+          attributes: [
+            'UserPoolId',
+            'AppClientIDWeb',
+            'AppClientID',
+            'IdentityPoolId',
           ],
         },
       ],
@@ -277,6 +346,13 @@ async function updateResource(context, category, serviceResult) {
       await verificationBucketName(result, context.updatingAuth);
 
       props = Object.assign(defaults, removeDeprecatedProps(context.updatingAuth), result);
+
+      const resources = context.amplify.getProjectMeta();
+      if (resources.auth.userPoolGroups) {
+        await updateUserPoolGroups(context, props.resourceName, result.userPoolGroupList);
+      } else {
+        await createUserPoolGroups(context, props.resourceName, result.userPoolGroupList);
+      }
 
       const providerPlugin = context.amplify.getPluginInstance(context, provider);
       const previouslySaved = providerPlugin.loadResourceParameters(context, 'auth', resourceName).triggers || '{}';
